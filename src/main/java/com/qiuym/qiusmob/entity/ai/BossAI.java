@@ -206,6 +206,12 @@ public class BossAI extends Goal {
             return;
         }
 
+        // ===== 被动技能：雷霆万钧（固定间隔触发） =====
+        if (healthRatio < 0.3f && abilityCooldown <= 0) {
+            executeSummonLightning();
+            abilityCooldown = LIGHTNING_COOLDOWN;
+        }
+        
         // ===== 移动与攻击逻辑 =====
         if (inMeleeRange) {
             // 近战范围 → 停止移动，近战攻击
@@ -224,13 +230,12 @@ public class BossAI extends Goal {
             
             if (abilityCooldown <= 0) {
                 // 随机选择远程技能
-                int skill = mob.getRandom().nextInt(3);
+                int skill = mob.getRandom().nextInt(2);
                 switch (skill) {
                     case 0 -> executeAOE();           // 范围爆发
-                    case 1 -> executeSummonLightning(); // 雷霆万钧
-                    case 2 -> {
+                    case 1 -> {
                         if (inLeapRange) executeLeap(); // 跳跃猛击
-                        else executeSummonLightning();  // 雷霆万钧
+                        else executeAOE();              // 跳跃范围外则放AOE
                     }
                 }
                 abilityCooldown = 10 + mob.getRandom().nextInt(10);
@@ -277,9 +282,9 @@ public class BossAI extends Goal {
         if (mob.distanceToSqr(target) < LEAP_RANGE * LEAP_RANGE) {
             Vec3 leapTarget = target.position();
             mob.setDeltaMovement(
-                    (leapTarget.x - mob.getX()) * 0.4,
-                    1.0,
-                    (leapTarget.z - mob.getZ()) * 0.4
+                    (leapTarget.x - mob.getX()) * 0.6,
+                    1.2,
+                    (leapTarget.z - mob.getZ()) * 0.6
             );
             mob.hurtMarked = true;
 

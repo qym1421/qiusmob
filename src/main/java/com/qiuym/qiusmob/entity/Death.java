@@ -10,7 +10,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.world.BossEvent;
 import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
@@ -19,6 +19,7 @@ import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.Vec3;
 import software.bernie.geckolib.animatable.GeoEntity;
 import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
 import software.bernie.geckolib.core.animation.AnimatableManager;
@@ -74,7 +75,7 @@ public class Death extends Monster implements GeoEntity {
         super.registerGoals();
 
         this.goalSelector.addGoal(0, new LookGoal(this, 32.0, 30.0f));
-        
+
         this.targetSelector.addGoal(0, new HurtByTargetGoal(this));
 
         if (level() instanceof ServerLevel serverLevel) {
@@ -104,9 +105,9 @@ public class Death extends Monster implements GeoEntity {
     public void tick() {
         super.tick();
         bossEvent.setProgress(getHealth() / getMaxHealth());
-        
+
         float healthRatio = getHealth() / getMaxHealth();
-        
+
         if (!level().isClientSide && getHealth() < getMaxHealth()) {
             float regenAmount;
             if (healthRatio > 0.6f) {
@@ -117,6 +118,34 @@ public class Death extends Monster implements GeoEntity {
                 regenAmount = 0.0f;
             }
             setHealth(Math.min(getHealth() + regenAmount, getMaxHealth()));
+        }
+
+        // ===== 水下呼吸：在水下不缺氧 =====
+        if (isInWater()) {
+            setAirSupply(getMaxAirSupply());
+        }
+    }
+
+    @Override
+    public void aiStep() {
+        super.aiStep();
+
+        // ===== 水下移动 =====
+        if (isInWater()) {
+            LivingEntity target = getTarget();
+            if (target != null && target.isAlive()) {
+                Vec3 toTarget = new Vec3(
+                    target.getX() - getX(),
+                    target.getY() - getY(),
+                    target.getZ() - getZ()
+                );
+                // 目标在上方 → 上浮
+                if (toTarget.y > 0.5) {
+                    setDeltaMovement(getDeltaMovement().add(0, 0.04, 0));
+                }
+                // 目标在下方 → 下沉（不主动下潜，只保持不动）
+                // 水平移动由 BossAI 负责
+            }
         }
     }
 

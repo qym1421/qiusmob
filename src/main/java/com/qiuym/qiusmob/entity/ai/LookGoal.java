@@ -22,6 +22,12 @@ public class LookGoal extends Goal {
 
     @Override
     public boolean canUse() {
+        // 如果正在移动，不干扰移动方向
+        if (mob.getNavigation().isInProgress()) {
+            target = null;
+            return false;
+        }
+        
         // 优先看攻击目标
         LivingEntity attackTarget = mob.getTarget();
         if (attackTarget != null && attackTarget.isAlive()) {
@@ -45,7 +51,10 @@ public class LookGoal extends Goal {
         if (target == null || !target.isAlive()) {
             return false;
         }
-        // 如果目标已死亡或太远，停止
+        // 如果正在移动，停止看向目标
+        if (mob.getNavigation().isInProgress()) {
+            return false;
+        }
         if (mob.distanceToSqr(target) > range * range) {
             return false;
         }
@@ -54,7 +63,7 @@ public class LookGoal extends Goal {
 
     @Override
     public void tick() {
-        if (target != null) {
+        if (target != null && !mob.getNavigation().isInProgress()) {
             mob.getLookControl().setLookAt(target, speed, speed);
         }
     }
