@@ -27,30 +27,30 @@ public class BossAI extends Goal {
     private int abilityCooldown = 0;
 
     // ========== 范围参数 ==========
-    private static final double FOLLOW_RANGE = 48.0;
-    private static final double ATTACK_RANGE = 48.0;
-    private static final double MELEE_RANGE = 6.0;
-    private static final double AOE_RANGE = 16.0;
-    private static final double LEAP_RANGE = 22.0;
+    private static final double FOLLOW_RANGE = 48.0;    // 索敌范围
+    private static final double ATTACK_RANGE = 48.0;    // 攻击范围
+    private static final double MELEE_RANGE = 6.0;      // 近战范围
+    private static final double AOE_RANGE = 16.0;       // 范围爆发范围
+    private static final double LEAP_RANGE = 22.0;      // 跳跃猛击范围
 
     // ========== 伤害参数 ==========
-    private static final int MELEE_DAMAGE = 748;
-    private static final int LEAP_DAMAGE = 780;
-    private static final int AOE_DAMAGE = 480;
-    private static final int LIGHTNING_DAMAGE = 180;
-    private static final int DIVINE_DAMAGE = 280;
-    private static final int JUDGMENT_DAMAGE = 740;
+    private static final int MELEE_DAMAGE = 748;         // 近战伤害（普通攻击）
+    private static final int LEAP_DAMAGE = 780;          // 跳跃猛击伤害
+    private static final int AOE_DAMAGE = 480;           // 范围爆发伤害
+    private static final int LIGHTNING_DAMAGE = 180;     // 雷霆万钧伤害
+    private static final int DIVINE_DAMAGE = 280;        // 神之惩戒伤害（天罚）
+    private static final int JUDGMENT_DAMAGE = 740;      // 终末审判伤害（大招）
 
     // ========== 冷却参数 ==========
-    private static final int MELEE_COOLDOWN = 15;
-    private static final int LEAP_COOLDOWN = 30;
-    private static final int AOE_COOLDOWN = 40;
-    private static final int LIGHTNING_COOLDOWN = 25;
-    private static final int JUDGMENT_COOLDOWN = 60;
-    private static final int DIVINE_COOLDOWN = 30;
+    private static final int MELEE_COOLDOWN = 15;        // 近战冷却
+    private static final int LEAP_COOLDOWN = 30;         // 跳跃猛击冷却
+    private static final int AOE_COOLDOWN = 40;          // 范围爆发冷却
+    private static final int LIGHTNING_COOLDOWN = 25;    // 雷霆万钧冷却
+    private static final int JUDGMENT_COOLDOWN = 60;     // 终末审判冷却
+    private static final int DIVINE_COOLDOWN = 30;       // 神之惩戒冷却
 
     // ========== 移动参数 ==========
-    private static final double MOVE_SPEED = 0.5;
+    private static final double MOVE_SPEED = 0.5;        // 移动速度
 
     // ========== 构造方法 ==========
 
@@ -77,6 +77,22 @@ public class BossAI extends Goal {
     private Level getLevel() {
         LivingEntity executor = getExecutor();
         return executor != null ? executor.level() : null;
+    }
+    
+    // ========== 获取目标 ==========
+    public LivingEntity getTarget() {
+        return target;
+    }
+
+    // ========== 判断目标是否有效 ==========
+    public boolean hasValidTarget() {
+        LivingEntity executor = getExecutor();
+        if (executor == null) return false;
+        if (target == null) return false;
+        if (!target.isAlive()) return false;
+        if (!shouldAttack(target)) return false;
+        if (executor.distanceToSqr(target) > ATTACK_RANGE * ATTACK_RANGE) return false;
+        return true;
     }
 
     // ========== 判断是否应该攻击该实体 ==========
@@ -164,7 +180,7 @@ public class BossAI extends Goal {
         }
     }
 
-    // 跳跃猛击 —— 跃向目标造成范围伤害
+    // 跳跃猛击 —— 跃向目标造成范围伤害（无目标时朝面朝方向跳跃）
     public void executeLeap() {
         LivingEntity executor = getExecutor();
         if (executor == null) return;
@@ -174,10 +190,21 @@ public class BossAI extends Goal {
         if (attackCooldown > 0) return;
         attackCooldown = LEAP_COOLDOWN;
 
-        if (target == null || !shouldAttack(target)) return;
-        if (executor.distanceToSqr(target) > LEAP_RANGE * LEAP_RANGE) return;
+        Vec3 leapTarget;
+        
+        // 如果有目标，跳向目标
+        if (target != null && shouldAttack(target) && executor.distanceToSqr(target) <= LEAP_RANGE * LEAP_RANGE) {
+            leapTarget = target.position();
+        } else if (executor instanceof Player) {
+            // 玩家模式：无目标时朝面朝方向跳跃
+            Vec3 lookVec = executor.getLookAngle();
+            leapTarget = executor.position().add(lookVec.scale(5.0));
+        } else {
+            // 非玩家无目标：不执行
+            return;
+        }
 
-        Vec3 leapTarget = target.position();
+        // 执行跳跃
         executor.setDeltaMovement(
                 (leapTarget.x - executor.getX()) * 0.4,
                 1.0,
@@ -185,6 +212,7 @@ public class BossAI extends Goal {
         );
         executor.hurtMarked = true;
 
+        // 落地范围伤害
         AABB aabb = AABB.ofSize(executor.position(), 10, 5, 10);
         float damage = LEAP_DAMAGE;
         level.getEntitiesOfClass(LivingEntity.class, aabb).forEach(entity -> {
@@ -208,7 +236,7 @@ public class BossAI extends Goal {
         }
     }
 
-    // 范围爆发 —— 大范围AOE伤害
+    // 范围爆发 —— 大范围AOE伤害（以自己为中心）
     public void executeAOE() {
         LivingEntity executor = getExecutor();
         if (executor == null) return;
@@ -218,9 +246,7 @@ public class BossAI extends Goal {
         if (attackCooldown > 0) return;
         attackCooldown = AOE_COOLDOWN;
 
-        if (target == null || !shouldAttack(target)) return;
-        if (executor.distanceToSqr(target) > AOE_RANGE * AOE_RANGE) return;
-
+        // 以自己为中心，不需要 target
         AABB aabb = AABB.ofSize(executor.position(), AOE_RANGE * 2, 8, AOE_RANGE * 2);
         float damage = AOE_DAMAGE;
         level.getEntitiesOfClass(LivingEntity.class, aabb).forEach(entity -> {
@@ -245,7 +271,7 @@ public class BossAI extends Goal {
         }
     }
 
-    // 雷霆万钧 —— 被动技能
+    // 雷霆万钧 —— 被动技能（目标周围召唤闪电）
     private void executeLightning() {
         LivingEntity executor = getExecutor();
         if (executor == null) return;
@@ -285,7 +311,7 @@ public class BossAI extends Goal {
         }
     }
 
-    // 神之惩戒 —— 天罚
+    // 神之惩戒 —— 天罚（以目标为中心）
     private void executeDivinePunishment() {
         LivingEntity executor = getExecutor();
         if (executor == null) return;
@@ -297,7 +323,7 @@ public class BossAI extends Goal {
 
         if (target == null || !shouldAttack(target)) return;
 
-        AABB aabb = AABB.ofSize(executor.position(), 25, 10, 25);
+        AABB aabb = AABB.ofSize(target.position(), 25, 10, 25);
         float damage = DIVINE_DAMAGE;
         level.getEntitiesOfClass(LivingEntity.class, aabb).forEach(entity -> {
             if (entity != executor && shouldAttack(entity)) {
@@ -315,14 +341,14 @@ public class BossAI extends Goal {
 
         if (level instanceof ServerLevel serverLevel) {
             serverLevel.sendParticles(ParticleTypes.REVERSE_PORTAL,
-                    executor.getX(), executor.getY() + 1, executor.getZ(),
+                    target.getX(), target.getY() + 1, target.getZ(),
                     40, 1, 1, 1, 0.1);
             serverLevel.playSound(null, executor.blockPosition(),
                     SoundEvents.BEACON_POWER_SELECT, SoundSource.PLAYERS, 2.0f, 0.2f);
         }
     }
 
-    // 终末审判 —— 全屏大招
+    // 终末审判 —— 全屏大招（以目标为中心）
     public void executeJudgment() {
         LivingEntity executor = getExecutor();
         if (executor == null) return;
@@ -334,7 +360,7 @@ public class BossAI extends Goal {
 
         if (target == null || !shouldAttack(target)) return;
 
-        AABB aabb = AABB.ofSize(executor.position(), 50, 20, 50);
+        AABB aabb = AABB.ofSize(target.position(), 50, 20, 50);
         float damage = JUDGMENT_DAMAGE;
         level.getEntitiesOfClass(LivingEntity.class, aabb).forEach(entity -> {
             if (entity != executor && shouldAttack(entity)) {
@@ -352,7 +378,7 @@ public class BossAI extends Goal {
 
         if (level instanceof ServerLevel serverLevel) {
             serverLevel.sendParticles(ParticleTypes.TOTEM_OF_UNDYING,
-                    executor.getX(), executor.getY() + 1, executor.getZ(),
+                    target.getX(), target.getY() + 1, target.getZ(),
                     60, 50, 10, 50, 0.1);
             serverLevel.playSound(null, executor.blockPosition(),
                     SoundEvents.ENDER_DRAGON_GROWL, SoundSource.PLAYERS, 3.0f, 0.3f);
@@ -377,6 +403,15 @@ public class BossAI extends Goal {
         if (executor == null) return;
 
         tickCooldowns();
+
+        // ===== 检查目标是否超出范围 =====
+        if (target != null) {
+            if (!target.isAlive() || !shouldAttack(target) || 
+                executor.distanceToSqr(target) > ATTACK_RANGE * ATTACK_RANGE) {
+                target = null;
+                System.out.println("[QiusMob] 目标超出范围或无效，已清空");
+            }
+        }
 
         // 自动索敌（如果没有目标）
         if (target == null || !target.isAlive() || !shouldAttack(target)) {

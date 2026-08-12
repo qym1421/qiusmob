@@ -1,4 +1,19 @@
 {
     "entity.qiusmob.death": "§c§l死亡君主",
-    "item.qiusmob.death_spawn_egg": "召唤 §c§l死亡君主"
+    "item.qiusmob.death_spawn_egg": "召唤 §c§l死亡君主",
+    "key.category.qiusmob": "§6§lQiusMob",
+    "key.qiusmob.transform": "§e切换变形",
+    "key.qiusmob.ultimate": "§c§l终末审判",
+    "key.qiusmob.melee": "§f近战攻击",
+    "key.qiusmob.leap": "§b跳跃猛击",
+    "key.qiusmob.aoe": "§d范围爆发",
+    
+    "gamerule.qiusmobEnableBossAI": "启用Boss AI",
+    "gamerule.qiusmobEnableBossAI.description": "是否启用死亡君主的AI（自动索敌和攻击）",
+    "gamerule.qiusmobCanAttackDeath": "允许攻击死亡君主",
+    "gamerule.qiusmobCanAttackDeath.description": "是否允许玩家伤害死亡君主（false=无敌）",
+    "gamerule.qiusmobDeathCanSubjectiveAttack": "死亡君主主动攻击",
+    "gamerule.qiusmobDeathCanSubjectiveAttack.description": "死亡君主是否主动索敌攻击（false=仅被动反击）",
+    "gamerule.qiusmobBinding": "死亡君主绑定玩家",
+    "gamerule.qiusmobBinding.description": "绑定玩家的UUID，只有该玩家可以变形为死亡君主"
 }

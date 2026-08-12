@@ -2,30 +2,113 @@ package com.qiuym.qiusmob.client;
 
 import com.qiuym.qiusmob.EntityRegister;
 import com.qiuym.qiusmob.QiusMob;
+import com.qiuym.qiusmob.client.render.DeathPlayerRenderer;
 import com.qiuym.qiusmob.client.render.DeathRender;
-import com.qiuym.qiusmob.item.EntityEggs;
 import com.qiuym.qiusmob.entity.Death;
+import com.qiuym.qiusmob.item.EntityEggs;
+import com.qiuym.qiusmob.player.PlayerConvertToQiusMob;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.world.entity.EntityType;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.EntityRenderersEvent;
 import net.minecraftforge.client.event.RegisterColorHandlersEvent;
+import net.minecraftforge.client.event.RenderPlayerEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
-@Mod.EventBusSubscriber(modid = QiusMob.MOD_ID, value = Dist.CLIENT, bus = Mod.EventBusSubscriber.Bus.MOD)
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+
 public class Client {
-    @SubscribeEvent
-    public static void regiserRenderers(EntityRenderersEvent.RegisterRenderers event) {
-        event.registerEntityRenderer((EntityType<? extends Death>) EntityRegister.DEATH.get(), (DeathRender::new));
+
+    // ===== 内部类1：模组事件（Mod Bus） =====
+    @Mod.EventBusSubscriber(modid = QiusMob.MOD_ID, value = Dist.CLIENT, bus = Mod.EventBusSubscriber.Bus.MOD)
+    public static class ModEvents {
+
+        private static EntityRendererProvider.Context cachedContext;
+
+        @SubscribeEvent
+        public static void registerRenderers(EntityRenderersEvent.RegisterRenderers event) {
+            event.registerEntityRenderer(
+                (EntityType<? extends Death>) EntityRegister.DEATH.get(),
+                DeathRender::new
+            );
+        }
+
+        @SubscribeEvent
+        public static void onAddLayers(EntityRenderersEvent.AddLayers event) {
+            cachedContext = event.getContext();
+        }
+
+        @SubscribeEvent
+        public static void registerItemColors(RegisterColorHandlersEvent.Item event) {
+            event.register((stack, tintIndex) -> {
+                if (tintIndex == 0) return 0x5A0F1B;
+                if (tintIndex == 1) return 0xC41A22;
+                return 0xFFFFFF;
+            }, EntityEggs.DEATH_SPAWN_EGG.get());
+        }
+
+        public static EntityRendererProvider.Context getContext() {
+            return cachedContext;
+        }
     }
-    
-    @SubscribeEvent
-    public static void registerItemColors(RegisterColorHandlersEvent.Item event) {
-        event.register((stack, tintIndex) -> {
-            if (tintIndex == 0) return 0x5A0F1B;  // 主色：暗红褐
-            if (tintIndex == 1) return 0xC41A22;  // 斑点色：亮红
-            return 0xFFFFFF;
-        }, EntityEggs.DEATH_SPAWN_EGG.get());
+
+    // ===== 内部类2：游戏事件（Game Bus） =====
+    @Mod.EventBusSubscriber(modid = QiusMob.MOD_ID, value = Dist.CLIENT)  // 默认 Bus.GAME
+    public static class GameEvents {
+
+        private static final Map<UUID, DeathPlayerRenderer> DEATH_RENDERERS = new HashMap<>();
+        private static boolean isRendering = false;
+
+        @SubscribeEvent
+        public static void onRenderPlayerPre(RenderPlayerEvent.Pre event) {
+            var player = event.getEntity();
+            var uuid = player.getUUID();
+
+            if (!PlayerConvertToQiusMob.isTransformed(player)) {
+                DEATH_RENDERERS.remove(uuid);
+                return;
+            }
+
+            // 防止递归
+            if (isRendering) {
+                return;
+            }
+
+            var context = ModEvents.getContext();
+            if (context == null) {
+                return;
+            }
+
+            AbstractClientPlayer abstractPlayer = (AbstractClientPlayer) player;
+
+            DeathPlayerRenderer renderer = DEATH_RENDERERS.get(uuid);
+            if (renderer == null) {
+                renderer = new DeathPlayerRenderer(context);
+                DEATH_RENDERERS.put(uuid, renderer);
+            }
+
+            // 取消原版渲染，使用自定义渲染器
+            event.setCanceled(true);
+
+            // 标记正在渲染，防止递归
+            isRendering = true;
+            try {
+                renderer.render(
+                    abstractPlayer,
+                    0,
+                    0,
+                    event.getPoseStack(),
+                    event.getMultiBufferSource(),
+                    event.getPackedLight()
+                );
+            } finally {
+                isRendering = false;
+            }
+        }
     }
 }

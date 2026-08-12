@@ -16,6 +16,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.living.LivingEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -75,7 +76,6 @@ public class PlayerConvertToQiusMob {
                 BossEvent.BossBarOverlay.PROGRESS
         );
 
-        // 添加 BossBar 给所有玩家
         if (level instanceof ServerLevel serverLevel) {
             for (ServerPlayer p : serverLevel.getServer().getPlayerList().getPlayers()) {
                 bossEvent.addPlayer(p);
@@ -87,15 +87,22 @@ public class PlayerConvertToQiusMob {
         BossAI bossAI = new BossAI(player);
         bossAIMap.put(uuid, bossAI);
 
-        // 3. 初始化玩家属性为 Death 的属性（1000血）
+        // 3. 初始化玩家属性（1000血）
         player.getAttributes().getInstance(Attributes.MAX_HEALTH).setBaseValue(1000.0D);
         player.getAttributes().getInstance(Attributes.MOVEMENT_SPEED).setBaseValue(0.5D);
         player.setHealth(1000.0f);
 
-        // 4. 玩家状态：正常
-        player.setInvisible(false);
-        player.setInvulnerable(false);
-        player.setNoGravity(false);
+        // 4. 检查 gamerule qiusmobCanAttackDeath
+        if (level instanceof ServerLevel serverLevel) {
+            GameRules.BooleanValue rule = serverLevel.getGameRules()
+                    .getRule(ModEvents.CAN_ATTACK_DEATH_KEY);
+            if (!rule.get()) {
+                player.setInvulnerable(true);
+                System.out.println("[QiusMob] 规则 qiusmobCanAttackDeath=false，玩家无敌");
+            } else {
+                player.setInvulnerable(false);
+            }
+        }
 
         // 5. BossBar 进度初始化
         bossEvent.setProgress(player.getHealth() / player.getMaxHealth());
@@ -109,7 +116,21 @@ public class PlayerConvertToQiusMob {
                     SoundEvents.BEACON_ACTIVATE, SoundSource.PLAYERS, 1.0f, 1.0f);
         }
 
-        // 7. 客户端消息
+        // 7. 夜视效果
+        if (player instanceof ServerPlayer serverPlayer) {
+            var server = serverPlayer.getServer();
+            var level2 = serverPlayer.serverLevel();
+            var gameRules = level2.getGameRules();
+            
+            gameRules.getRule(GameRules.RULE_SENDCOMMANDFEEDBACK).set(false, server);
+            server.getCommands().performPrefixedCommand(
+                    serverPlayer.createCommandSourceStack(),
+                    "effect give @s minecraft:night_vision infinite 0 true"
+            );
+            gameRules.getRule(GameRules.RULE_SENDCOMMANDFEEDBACK).set(true, server);
+        }
+
+        // 8. 客户端消息
         player.displayClientMessage(
                 Component.literal("§a§l【QiusMod】 §r变形成功！"),
                 true
@@ -123,7 +144,6 @@ public class PlayerConvertToQiusMob {
 
         bossAIMap.remove(uuid);
 
-        // 移除 BossBar
         ServerBossEvent bossEvent = bossEventMap.remove(uuid);
         if (bossEvent != null) {
             bossEvent.removeAllPlayers();
@@ -139,6 +159,20 @@ public class PlayerConvertToQiusMob {
         player.getAttributes().getInstance(Attributes.MOVEMENT_SPEED).setBaseValue(0.1D);
         player.setHealth(20.0f);
 
+        // 移除夜视效果
+        if (player instanceof ServerPlayer serverPlayer) {
+            var server = serverPlayer.getServer();
+            var level = serverPlayer.serverLevel();
+            var gameRules = level.getGameRules();
+            
+            gameRules.getRule(GameRules.RULE_SENDCOMMANDFEEDBACK).set(false, server);
+            server.getCommands().performPrefixedCommand(
+                    serverPlayer.createCommandSourceStack(),
+                    "effect clear @s minecraft:night_vision"
+            );
+            gameRules.getRule(GameRules.RULE_SENDCOMMANDFEEDBACK).set(true, server);
+        }
+
         if (player.level() instanceof ServerLevel serverLevel) {
             serverLevel.sendParticles(ParticleTypes.SOUL,
                     player.getX(), player.getY() + 1, player.getZ(),
@@ -147,7 +181,6 @@ public class PlayerConvertToQiusMob {
                     SoundEvents.BEACON_DEACTIVATE, SoundSource.PLAYERS, 1.0f, 1.0f);
         }
 
-        // 客户端消息
         player.displayClientMessage(
                 Component.literal("§e§l【QiusMod】 §r解除变形！"),
                 true
@@ -175,7 +208,19 @@ public class PlayerConvertToQiusMob {
             return;
         }
 
-        // ===== 取最近的 LivingEntity 为 target =====
+        // ===== 统一检查 target（除 AOE 和 Leap 外强制要求） =====
+        // AOE 和 Leap 不需要 target
+        if (!methodName.equals("executeAOE") && !methodName.equals("executeLeap")) {
+            if (bossAI.getTarget() == null) {
+                player.displayClientMessage(
+                        Component.literal("§c§l【QiusMod】 §r没有找到目标！"),
+                        true
+                );
+                return;
+            }
+        }
+
+        // ===== 设置目标（AOE 和 Leap 不需要，但为了兼容保留） =====
         try {
             AABB aabb = AABB.ofSize(player.position(), 48, 20, 48);
             LivingEntity nearestTarget = player.level().getEntitiesOfClass(
@@ -194,18 +239,26 @@ public class PlayerConvertToQiusMob {
                 targetField.set(bossAI, nearestTarget);
                 System.out.println("[QiusMob] 技能目标: " + nearestTarget.getName().getString());
             } else {
+                // AOE 和 Leap 允许无目标
+                if (!methodName.equals("executeAOE") && !methodName.equals("executeLeap")) {
+                    player.displayClientMessage(
+                            Component.literal("§c§l【QiusMod】 §r没有找到目标！"),
+                            true
+                    );
+                    return;
+                }
+                // AOE 和 Leap 无目标时继续执行
+                System.out.println("[QiusMob] 无目标，执行" + methodName + "（无需目标）");
+            }
+        } catch (Exception e) {
+            // 目标设置失败，但 AOE 和 Leap 允许无目标
+            if (!methodName.equals("executeAOE") && !methodName.equals("executeLeap")) {
                 player.displayClientMessage(
-                        Component.literal("§c§l【QiusMod】 §r没有找到目标！"),
+                        Component.literal("§c§l【QiusMod】 §r目标设置失败！"),
                         true
                 );
                 return;
             }
-        } catch (Exception e) {
-            player.displayClientMessage(
-                    Component.literal("§c§l【QiusMod】 §r目标设置失败！"),
-                    true
-            );
-            return;
         }
 
         // 调用技能
@@ -255,6 +308,17 @@ public class PlayerConvertToQiusMob {
 
             if (!isTransformed(player)) return;
 
+            // ===== 神性光环（粒子特效） =====
+            BossAI bossAI = bossAIMap.get(uuid);
+            if (bossAI != null && bossAI.hasValidTarget()) {
+                if (player.level() instanceof ServerLevel serverLevel) {
+                    Vec3 pos = player.position();
+                    serverLevel.sendParticles(ParticleTypes.ENCHANT,
+                            pos.x, pos.y + 2, pos.z,
+                            2, 0.5, 0.5, 0.5, 0.05);
+                }
+            }
+
             // ===== BossBar 更新 =====
             ServerBossEvent bossEvent = bossEventMap.get(uuid);
             if (bossEvent != null) {
@@ -286,7 +350,6 @@ public class PlayerConvertToQiusMob {
             }
 
             // ===== BossAI 被动 =====
-            BossAI bossAI = bossAIMap.get(uuid);
             if (bossAI != null) {
                 bossAI.tickPassive();
             }
