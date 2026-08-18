@@ -21,10 +21,25 @@ public class NetworkHandler {
                 TransformPacket::encode,
                 TransformPacket::new,
                 TransformPacket::handle);
-
         INSTANCE.registerMessage(id++, SkillPacket.class,
                 SkillPacket::encode,
                 SkillPacket::new,
                 SkillPacket::handle);
+        INSTANCE.registerMessage(id++, TransformSyncPacket.class,
+                TransformSyncPacket::encode, 
+                TransformSyncPacket::new, 
+                TransformSyncPacket::handle);
+        INSTANCE.registerMessage(id++, SyncPacket.class,
+                SyncPacket::encode, 
+                SyncPacket::new, 
+                SyncPacket::handle);
+        INSTANCE.registerMessage(id++, MovementPacket.class,
+                MovementPacket::encode, 
+                MovementPacket::new, 
+                MovementPacket::handle);
+        INSTANCE.registerMessage(id++, ViewModePacket.class,
+                ViewModePacket::encode, 
+                ViewModePacket::new, 
+                ViewModePacket::handle);
     }
 }

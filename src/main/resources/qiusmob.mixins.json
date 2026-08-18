@@ -5,7 +5,9 @@
     "compatibilityLevel": "JAVA_17",
     "refmap": "qiusmob.refmap.json",
     "mixins": [
-        "LivingEntityMixin"
+        "LivingEntityMixin",
+        "LivingEntityAccessor",
+        "CameraMixin"
     ],
     "client": [],
     "server": []

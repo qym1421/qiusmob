@@ -1,16 +1,18 @@
 package com.qiuym.qiusmob.client;
 
 import com.qiuym.qiusmob.EntityRegister;
+import com.qiuym.qiusmob.ModEvents;
 import com.qiuym.qiusmob.QiusMob;
 import com.qiuym.qiusmob.client.render.DeathPlayerRenderer;
 import com.qiuym.qiusmob.client.render.DeathRender;
 import com.qiuym.qiusmob.entity.Death;
 import com.qiuym.qiusmob.item.EntityEggs;
 import com.qiuym.qiusmob.player.PlayerConvertToQiusMob;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.level.GameRules;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.EntityRenderersEvent;
 import net.minecraftforge.client.event.RegisterColorHandlersEvent;
@@ -58,7 +60,7 @@ public class Client {
     }
 
     // ===== 内部类2：游戏事件（Game Bus） =====
-    @Mod.EventBusSubscriber(modid = QiusMob.MOD_ID, value = Dist.CLIENT)  // 默认 Bus.GAME
+    @Mod.EventBusSubscriber(modid = QiusMob.MOD_ID, value = Dist.CLIENT)
     public static class GameEvents {
 
         private static final Map<UUID, DeathPlayerRenderer> DEATH_RENDERERS = new HashMap<>();
@@ -74,12 +76,22 @@ public class Client {
                 return;
             }
 
+            // 检查游戏规则：是否允许皮肤替换
+            if (player.level() instanceof ServerLevel serverLevel) {
+                GameRules.BooleanValue rule = serverLevel.getGameRules()
+                        .getRule(com.qiuym.qiusmob.ModEvents.ENABLE_SKIN_REPLACE_KEY);
+                if (!rule.get()) {
+                    // 皮肤替换被禁用，使用原版渲染
+                    return;
+                }
+            }
+
             // 防止递归
             if (isRendering) {
                 return;
             }
 
-            var context = ModEvents.getContext();
+            var context = Client.ModEvents.getContext();
             if (context == null) {
                 return;
             }

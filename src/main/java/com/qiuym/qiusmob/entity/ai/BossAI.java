@@ -14,6 +14,7 @@ import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.scores.Team;
 
 import java.util.EnumSet;
 import java.util.List;
@@ -103,8 +104,16 @@ public class BossAI extends Goal {
         if (!entity.isAlive()) return false;
         if (entity instanceof Player player) {
             if (player.isCreative() || player.isSpectator() || player.isInvulnerable()) return false;
-            if (executor instanceof Player && ((Player) executor).isAlliedTo(player)) return false;
         }
+        
+        Team executorTeam = executor.getTeam();
+        Team targetTeam = entity.getTeam();
+        if (executorTeam != null && targetTeam != null && executorTeam == targetTeam) {
+            if (!executorTeam.isAllowFriendlyFire()) {
+                return false;
+            }
+        }
+        
         return true;
     }
 

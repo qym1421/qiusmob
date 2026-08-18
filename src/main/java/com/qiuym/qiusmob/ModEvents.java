@@ -13,9 +13,8 @@ public class ModEvents {
     public static GameRules.Key<GameRules.BooleanValue> ENABLE_BOSS_AI_KEY;
     public static GameRules.Key<GameRules.BooleanValue> CAN_ATTACK_DEATH_KEY;
     public static GameRules.Key<GameRules.BooleanValue> DEATH_CAN_SUBJECTIVE_ATTACK_KEY;
-    
-    // 改用 Integer 存储 UUID 哈希值
     public static GameRules.Key<GameRules.IntegerValue> BINDING_PLAYER_KEY;
+    public static GameRules.Key<GameRules.BooleanValue> ENABLE_SKIN_REPLACE_KEY;
 
     @SubscribeEvent
     public static void onEntityAttributeCreation(EntityAttributeCreationEvent event) {
@@ -40,6 +39,10 @@ public class ModEvents {
             BINDING_PLAYER_KEY = GameRules.register("qiusmobBinding",
                     GameRules.Category.MISC,
                     GameRules.IntegerValue.create(0));
+            
+            ENABLE_SKIN_REPLACE_KEY = GameRules.register("qiusmobEnableSkinReplace",
+                    GameRules.Category.MISC,
+                    GameRules.BooleanValue.create(true));
         });
     }
 }
