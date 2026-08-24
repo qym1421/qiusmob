@@ -119,9 +119,6 @@ public class KeyBindings {
         if (mc.options.keyRight.isDown()) left -= 1;
         if (mc.options.keyJump.isDown()) jumping = true;
 
-        // 调试日志：打印当前检测值
-        System.out.println("[QiusMob] 客户端检测: forward=" + forward + ", left=" + left + ", jumping=" + jumping + " (tick=" + tickCounter + ")");
-        
         // 立即发送包
         NetworkHandler.INSTANCE.sendToServer(new MovementPacket(forward, left, jumping));
     }

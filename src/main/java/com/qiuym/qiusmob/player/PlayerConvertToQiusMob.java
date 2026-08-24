@@ -1,6 +1,7 @@
 package com.qiuym.qiusmob.player;
 
 import com.qiuym.qiusmob.ModEvents;
+import com.qiuym.qiusmob.api.IEyeHeightSetter;
 import com.qiuym.qiusmob.entity.ai.BossAI;
 import com.qiuym.qiusmob.mixin.LivingEntityAccessor;
 import com.qiuym.qiusmob.network.NetworkHandler;
@@ -43,7 +44,7 @@ public class PlayerConvertToQiusMob {
     private static final Map<UUID, UUID> possessedTargetMap = new HashMap<>();
     private static final Map<UUID, Boolean> originalAwareMap = new HashMap<>();
     private static final Map<UUID, GameType> originalGameModeMap = new HashMap<>();
-    private static final Map<UUID, Boolean> viewModeMap = new HashMap<>();  // true=锁定, false=自由
+    private static final Map<UUID, Boolean> viewModeMap = new HashMap<>();
 
     public static boolean isTransformed(Player player) {
         return transformedMap.getOrDefault(player.getUUID(), false);
@@ -79,8 +80,6 @@ public class PlayerConvertToQiusMob {
             }
             if (target instanceof Mob mob) {
                 // 只切换 AI，但不禁用（自由模式恢复AI）
-                // 这里我们不做 AI 开关，因为锁定/自由只影响玩家是否干预，AI 始终运行
-                // 但为了切换模式时表现一致，保持 AI 状态不变
             }
         }
     }
@@ -330,13 +329,14 @@ public class PlayerConvertToQiusMob {
         viewModeMap.put(playerUUID, true);
         if (target instanceof Mob mob) {
             originalAwareMap.put(targetUUID, mob.isNoAi());
-            // 不改变 AI 状态，保留原有 AI
-            // 但可能需要导航停止，在 tick 中处理
             mob.setPersistenceRequired();
         }
 
         originalGameModeMap.put(playerUUID, player.gameMode.getGameModeForPlayer());
         player.setGameMode(GameType.SPECTATOR);
+
+        // 服务端设置眼睛高度（通过 Mixin 覆写）
+        ((IEyeHeightSetter) player).setEyeHeight(target.getEyeHeight());
 
         player.setPos(target.getX(), target.getY(), target.getZ());
         player.setYRot(target.getYRot());
@@ -382,8 +382,19 @@ public class PlayerConvertToQiusMob {
             serverPlayer.setGameMode(GameType.SURVIVAL);
         }
 
+        // 重置眼睛高度（客户端的 SyncPacket 也会同步处理）
+        ((IEyeHeightSetter) player).resetEyeHeight();
+
         PlayerMovementState.remove(playerUUID);
         viewModeMap.remove(playerUUID);
+
+        // 发送重置包，告知客户端解除夺舍
+        if (player instanceof ServerPlayer serverPlayer2) {
+            NetworkHandler.INSTANCE.send(
+                    PacketDistributor.PLAYER.with(() -> serverPlayer2),
+                    new SyncPacket(player.getX(), player.getY(), player.getZ(), 0, 0, 0, false)
+            );
+        }
 
         serverPlayer.displayClientMessage(
                 Component.literal("§e§l【QiusMod】 §r已解除夺舍！"),
@@ -412,8 +423,19 @@ public class PlayerConvertToQiusMob {
             } else {
                 serverPlayer.setGameMode(GameType.SURVIVAL);
             }
+
+            // 重置眼睛高度（客户端的 SyncPacket 也会同步处理）
+            ((IEyeHeightSetter) player).resetEyeHeight();
+
             PlayerMovementState.remove(playerUUID);
             viewModeMap.remove(playerUUID);
+
+            // 发送重置包，告知客户端解除夺舍
+            NetworkHandler.INSTANCE.send(
+                    PacketDistributor.PLAYER.with(() -> serverPlayer),
+                    new SyncPacket(player.getX(), player.getY(), player.getZ(), 0, 0, 0, false)
+            );
+
             serverPlayer.displayClientMessage(
                     Component.literal("§c§l【QiusMod】 §r夺舍目标已死亡，自动解除！"),
                     true
@@ -552,8 +574,11 @@ public class PlayerConvertToQiusMob {
                     PlayerMovementState.State input = PlayerMovementState.get(player.getUUID());
                     boolean locked = viewModeMap.getOrDefault(playerUUID, true);
 
+                    // 服务端持续设置眼睛高度（确保 SyncPacket 正确同步）
+                    ((IEyeHeightSetter) player).setEyeHeight(mob.getEyeHeight());
+
                     if (locked) {
-                        // 锁定模式：只清空导航，不改变 AI 状态
+                        // 锁定模式：清空导航，不改变 AI
                         mob.getNavigation().stop();
 
                         // 实体朝向跟随玩家视角
@@ -564,9 +589,26 @@ public class PlayerConvertToQiusMob {
                         // 移动控制
                         if (input.forward != 0 || input.left != 0) {
                             double speed = 0.3D;
-                            Vec3 moveVec = new Vec3(input.left * speed, 0, input.forward * speed)
-                                    .yRot(-player.getYRot() * ((float) Math.PI / 180F));
-                            mob.setDeltaMovement(moveVec.x, mob.getDeltaMovement().y, moveVec.z);
+                            Vec3 moveVec;
+
+                            if (mob.isNoGravity()) {
+                                float yRot = mob.getYRot();
+                                float xRot = mob.getXRot();
+
+                                Vec3 forwardVec = new Vec3(0, 0, input.forward * speed)
+                                        .xRot(-xRot * ((float) Math.PI / 180F))
+                                        .yRot(-yRot * ((float) Math.PI / 180F));
+
+                                Vec3 leftVec = new Vec3(input.left * speed, 0, 0)
+                                        .yRot(-yRot * ((float) Math.PI / 180F));
+
+                                moveVec = forwardVec.add(leftVec);
+                                mob.setDeltaMovement(moveVec.x, moveVec.y, moveVec.z);
+                            } else {
+                                moveVec = new Vec3(input.left * speed, 0, input.forward * speed)
+                                        .yRot(-player.getYRot() * ((float) Math.PI / 180F));
+                                mob.setDeltaMovement(moveVec.x, mob.getDeltaMovement().y, moveVec.z);
+                            }
                             mob.hurtMarked = true;
                         }
 
@@ -575,16 +617,16 @@ public class PlayerConvertToQiusMob {
                             mob.hurtMarked = true;
                         }
                     }
-                    // 自由模式：完全不干预（AI 自行处理）
+                    // 自由模式：不干预，AI 自行处理
 
                     // 玩家坐标始终跟随实体
                     player.setPos(mob.getX(), mob.getY(), mob.getZ());
 
-                    // 发送同步包到客户端
+                    // 发送同步包到客户端（携带夺舍状态 true）
                     if (player instanceof ServerPlayer serverPlayer) {
                         NetworkHandler.INSTANCE.send(
                                 PacketDistributor.PLAYER.with(() -> serverPlayer),
-                                new SyncPacket(mob.getX(), mob.getY(), mob.getZ(), 0, 0)
+                                new SyncPacket(mob.getX(), mob.getY(), mob.getZ(), 0, 0, mob.getEyeHeight(), true)
                         );
                     }
                 }

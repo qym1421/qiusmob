@@ -24,14 +24,6 @@ public class QiusMob {
         PlayerConvertToQiusMob.register();
         MinecraftForge.EVENT_BUS.register(this);
         
-        try {
-            Class.forName("org.spongepowered.asm.launch.MixinBootstrap");
-            Class.forName("net.minecraftforge.fml.loading.FMLLoader");
-            LOGGER.info("[QiusMob] Mixin 已启用");
-        } catch (ClassNotFoundException e) {
-            LOGGER.warn("[QiusMob] Mixin 未找到，可能未安装 Mixin");
-        }
-        
         LOGGER.info("[QiusMob] 模组加载完成！");
     }
 }

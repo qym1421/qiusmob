@@ -3,7 +3,7 @@ plugins {
     id 'idea'
     id 'maven-publish'
     id 'net.minecraftforge.gradle' version '[6.0,6.2)'
-    id 'org.spongepowered.mixin' version '0.7-SNAPSHOT'
+    id 'org.spongepowered.mixin' version '0.7.+'
 }
 
 version = mod_version
@@ -144,6 +144,8 @@ dependencies {
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
     // implementation fg.deobf("maven.modrinth:8BmcQJ2H:aC5KMoNg")
     implementation files('libs/8BmcQJ2H-aC5KMoNg.jar')
+    implementation files('libs/dog-1.1.0.jar')
+    implementation files('libs/the_eyes_are_back-1.3.0-forge-1.20.1.jar')
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
 
     // Example mod dependency with JEI - using fg.deobf() ensures the dependency is remapped to your development mappings

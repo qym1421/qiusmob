@@ -2,12 +2,15 @@
     "required": true,
     "minVersion": "0.8",
     "package": "com.qiuym.qiusmob.mixin",
+    "plugin": "com.qiuym.qiusmob.mixin.ModPlugin",
     "compatibilityLevel": "JAVA_17",
     "refmap": "qiusmob.refmap.json",
     "mixins": [
         "LivingEntityMixin",
         "LivingEntityAccessor",
-        "CameraMixin"
+        "CameraMixin",
+        "MixinDevourerHeadEntity",
+        "MixinEyeTickProcedures"
     ],
     "client": [],
     "server": []

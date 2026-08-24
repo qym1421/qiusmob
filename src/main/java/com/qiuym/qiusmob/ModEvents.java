@@ -15,6 +15,7 @@ public class ModEvents {
     public static GameRules.Key<GameRules.BooleanValue> DEATH_CAN_SUBJECTIVE_ATTACK_KEY;
     public static GameRules.Key<GameRules.IntegerValue> BINDING_PLAYER_KEY;
     public static GameRules.Key<GameRules.BooleanValue> ENABLE_SKIN_REPLACE_KEY;
+    public static GameRules.Key<GameRules.IntegerValue> DEVOURER_OWNER_KEY;
 
     @SubscribeEvent
     public static void onEntityAttributeCreation(EntityAttributeCreationEvent event) {
@@ -43,6 +44,10 @@ public class ModEvents {
             ENABLE_SKIN_REPLACE_KEY = GameRules.register("qiusmobEnableSkinReplace",
                     GameRules.Category.MISC,
                     GameRules.BooleanValue.create(true));
+            
+            DEVOURER_OWNER_KEY = GameRules.register("qiusmobDevourerOwner",
+                    GameRules.Category.MISC,
+                    GameRules.IntegerValue.create(0));
         });
     }
 }
