@@ -59,7 +59,6 @@ public class MixinEyeTickProcedures {
             Entity entity,
             CallbackInfo ci
     ) {
-        // 只处理 Mob 类型的实体
         if (!(entity instanceof Mob mob)) return;
 
         LivingEntity target = mob.getTarget();
