@@ -642,7 +642,6 @@ public class PlayerConvertToQiusMob {
 
             if (player instanceof ServerPlayer serverPlayer) {
                 serverPlayer.getAbilities().mayfly = true;
-                serverPlayer.getAbilities().flying = true;
                 serverPlayer.onUpdateAbilities();
             }
 
