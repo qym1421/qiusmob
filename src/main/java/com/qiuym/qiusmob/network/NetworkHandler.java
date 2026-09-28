@@ -41,5 +41,9 @@ public class NetworkHandler {
                 ViewModePacket::encode, 
                 ViewModePacket::new, 
                 ViewModePacket::handle);
+        INSTANCE.registerMessage(id++, SightModePacket.class,
+                SightModePacket::encode, 
+                SightModePacket::new, 
+                SightModePacket::handle);
     }
 }

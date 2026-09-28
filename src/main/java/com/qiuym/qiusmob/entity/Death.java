@@ -57,7 +57,7 @@ public class Death extends Monster implements GeoEntity {
 
         if (level() instanceof ServerLevel serverLevel) {
             GameRules.BooleanValue rule = serverLevel.getGameRules()
-                    .getRule(ModEvents.CAN_ATTACK_DEATH_KEY);
+                    .getRule(ModEvents.CAN_ATTACK_BOSS_KEY);
             if (rule.get()) {
                 return super.hurt(source, amount);
             }

@@ -1,19 +1,37 @@
 {
     "entity.qiusmob.death": "§c§l死亡君主",
+    "entity.qiusmob.skirk": "§5§l深渊孤月 · 丝柯克",
     "item.qiusmob.death_spawn_egg": "召唤 §c§l死亡君主",
-    "key.category.qiusmob": "§6§lQiusMob",
+    "item.qiusmob.skirk_spawn_egg": "召唤 §5§l深渊孤月 · 丝柯克",
+
+    "key.category.qiusmob.general": "§6§lQiusMob · 通用",
+    "key.category.qiusmob.death": "§c§lQiusMob · 死亡君主",
+    "key.category.qiusmob.skirk": "§5§lQiusMob · 深渊孤月",
+
     "key.qiusmob.transform": "§e切换变形",
-    "key.qiusmob.ultimate": "§c§l终末审判",
-    "key.qiusmob.melee": "§f近战攻击",
-    "key.qiusmob.leap": "§b跳跃猛击",
-    "key.qiusmob.aoe": "§d范围爆发",
-    
+    "key.qiusmob.possess": "§e夺舍 / 解除",
+    "key.qiusmob.view_mode": "§e切换视角模式",
+
+    "key.qiusmob.death.ultimate": "§c§l终末审判",
+    "key.qiusmob.death.melee": "§f近战攻击",
+    "key.qiusmob.death.leap": "§b跳跃猛击",
+    "key.qiusmob.death.aoe": "§d范围爆发",
+
+    "key.qiusmob.skirk.n": "§5§l终焉审判",
+    "key.qiusmob.skirk.j": "§5§l黑洞掌控",
+    "key.qiusmob.skirk.i": "§5§l深渊视线",
+    "key.qiusmob.skirk.fire": "§5深渊视线·发射",
+
     "gamerule.qiusmobEnableBossAI": "启用Boss AI",
     "gamerule.qiusmobEnableBossAI.description": "是否启用死亡君主的AI（自动索敌和攻击）",
-    "gamerule.qiusmobCanAttackDeath": "允许攻击死亡君主",
-    "gamerule.qiusmobCanAttackDeath.description": "是否允许玩家伤害死亡君主（false=无敌）",
+    "gamerule.qiusmobCanAttackBoss": "允许攻击 Boss",
+    "gamerule.qiusmobCanAttackBoss.description": "是否允许玩家伤害变身后的 Boss 化身（false=无敌）",
     "gamerule.qiusmobDeathCanSubjectiveAttack": "死亡君主主动攻击",
     "gamerule.qiusmobDeathCanSubjectiveAttack.description": "死亡君主是否主动索敌攻击（false=仅被动反击）",
     "gamerule.qiusmobBinding": "死亡君主绑定玩家",
-    "gamerule.qiusmobBinding.description": "绑定玩家的UUID，只有该玩家可以变形为死亡君主"
+    "gamerule.qiusmobBinding.description": "绑定玩家的UUID哈希，只有该玩家可以变形为死亡君主",
+    "gamerule.qiusmobSkirkBinding": "深渊孤月绑定玩家",
+    "gamerule.qiusmobSkirkBinding.description": "绑定玩家的UUID哈希，只有该玩家可以变形为深渊孤月",
+    "gamerule.qiusmobDevourerOwner": "神明吞噬者拥有者",
+    "gamerule.qiusmobDevourerOwner.description": "绑定玩家的UUID哈希，神明吞噬者只在该玩家周围索敌"
 }

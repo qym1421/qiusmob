@@ -10,8 +10,11 @@
         "LivingEntityAccessor",
         "CameraMixin",
         "MixinDevourerHeadEntity",
-        "MixinEyeTickProcedures"
+        "MixinEyeTickProcedures",
+        "MaxHealthMixin"
     ],
-    "client": [],
+    "client": [
+        "SkyColorMixin"
+    ],
     "server": []
 }

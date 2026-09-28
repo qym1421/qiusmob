@@ -33,27 +33,37 @@ public class TransformPacket {
             ServerLevel level = player.serverLevel();
 
             // ===== 检查绑定（用 UUID 哈希） =====
-            int bindingHash = level.getGameRules().getRule(ModEvents.BINDING_PLAYER_KEY).get();
+            int deathHash = level.getGameRules().getRule(ModEvents.BINDING_PLAYER_KEY).get();
+            int skirkHash = level.getGameRules().getRule(ModEvents.SKIRK_BINDING_KEY).get();
             int playerHash = player.getUUID().hashCode();
 
-            if (bindingHash == 0) {
+            // 没有任何绑定
+            if (deathHash == 0 && skirkHash == 0) {
                 player.displayClientMessage(
-                        Component.literal("§c§l【QiusMod】 §r当前没有绑定任何玩家！"),
+                        Component.literal("§c§l【QiusMod】 §r当前没有绑定任何 Boss！"),
                         true
                 );
                 return;
             }
 
-            if (bindingHash != playerHash) {
+            // 判断玩家是哪个 Boss 的绑定者
+            PlayerConvertToQiusMob.TransformType type = null;
+            if (deathHash == playerHash) {
+                type = PlayerConvertToQiusMob.TransformType.DEATH;
+            } else if (skirkHash == playerHash) {
+                type = PlayerConvertToQiusMob.TransformType.SKIRK;
+            }
+
+            if (type == null) {
                 player.displayClientMessage(
-                        Component.literal("§c§l【QiusMod】 §r你不是被选中的死亡君主！"),
+                        Component.literal("§c§l【QiusMod】 §r你不是被选中的 Boss 化身！"),
                         true
                 );
                 return;
             }
 
             // 执行变形
-            PlayerConvertToQiusMob.setTransformed(player, transformed);
+            PlayerConvertToQiusMob.setTransformed(player, transformed, type);
         });
         ctx.get().setPacketHandled(true);
     }

@@ -1,19 +1,37 @@
 {
     "entity.qiusmob.death": "§c§lDeath Monarch",
-    "item.qiusmob.death_spawn_egg": "§c§lDeath Monarch Spawn Egg",
-    "key.category.qiusmob": "§6§lQiusMob",
+    "entity.qiusmob.skirk": "§5§lSkirk, the Abyssal Moon",
+    "item.qiusmob.death_spawn_egg": "§c§lDeath Monarch",
+    "item.qiusmob.skirk_spawn_egg": "§5§lSkirk, the Abyssal Moon",
+
+    "key.category.qiusmob.general": "§6§lQiusMob · General",
+    "key.category.qiusmob.death": "§c§lQiusMob · Death Monarch",
+    "key.category.qiusmob.skirk": "§5§lQiusMob · Abyssal Moon",
+
     "key.qiusmob.transform": "§eTransform",
-    "key.qiusmob.ultimate": "§c§lUltimate Judgment",
-    "key.qiusmob.melee": "§fMelee Attack",
-    "key.qiusmob.leap": "§bLeap Strike",
-    "key.qiusmob.aoe": "§dAOE Burst",
-    
+    "key.qiusmob.possess": "§ePossess / Release",
+    "key.qiusmob.view_mode": "§eToggle View Mode",
+
+    "key.qiusmob.death.ultimate": "§c§lUltimate Judgment",
+    "key.qiusmob.death.melee": "§fMelee Attack",
+    "key.qiusmob.death.leap": "§bLeap Strike",
+    "key.qiusmob.death.aoe": "§dAOE Burst",
+
+    "key.qiusmob.skirk.n": "§5§lFinal Judgment",
+    "key.qiusmob.skirk.j": "§5§lBlack Hole",
+    "key.qiusmob.skirk.i": "§5§lAbyssal Sight",
+    "key.qiusmob.skirk.fire": "§5Abyssal Sight · Fire",
+
     "gamerule.qiusmobEnableBossAI": "Enable Boss AI",
     "gamerule.qiusmobEnableBossAI.description": "Whether the Death Monarch's AI (auto-targeting and attacking) is enabled",
-    "gamerule.qiusmobCanAttackDeath": "Can Attack Death Monarch",
-    "gamerule.qiusmobCanAttackDeath.description": "Whether players can damage the Death Monarch (false=invulnerable)",
+    "gamerule.qiusmobCanAttackBoss": "Can Attack Boss",
+    "gamerule.qiusmobCanAttackBoss.description": "Whether players can damage the transformed Boss avatar (false=invulnerable)",
     "gamerule.qiusmobDeathCanSubjectiveAttack": "Death Monarch Active Attack",
     "gamerule.qiusmobDeathCanSubjectiveAttack.description": "Whether the Death Monarch actively seeks and attacks targets (false=passive counterattack only)",
     "gamerule.qiusmobBinding": "Death Monarch Binding Player",
-    "gamerule.qiusmobBinding.description": "UUID of the bound player, only this player can transform into the Death Monarch"
+    "gamerule.qiusmobBinding.description": "UUID hash of the bound player, only this player can transform into the Death Monarch",
+    "gamerule.qiusmobSkirkBinding": "Abyssal Moon Binding Player",
+    "gamerule.qiusmobSkirkBinding.description": "UUID hash of the bound player, only this player can transform into Skirk",
+    "gamerule.qiusmobDevourerOwner": "Devourer Owner",
+    "gamerule.qiusmobDevourerOwner.description": "UUID hash of the bound player, the Devourer only targets entities around this player"
 }

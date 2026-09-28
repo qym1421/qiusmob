@@ -1,10 +1,8 @@
 package com.qiuym.qiusmob.client;
 
 import com.qiuym.qiusmob.EntityRegister;
-import com.qiuym.qiusmob.ModEvents;
 import com.qiuym.qiusmob.QiusMob;
-import com.qiuym.qiusmob.client.render.DeathPlayerRenderer;
-import com.qiuym.qiusmob.client.render.DeathRender;
+import com.qiuym.qiusmob.client.render.*;
 import com.qiuym.qiusmob.entity.Death;
 import com.qiuym.qiusmob.item.EntityEggs;
 import com.qiuym.qiusmob.player.PlayerConvertToQiusMob;
@@ -38,6 +36,11 @@ public class Client {
                 (EntityType<? extends Death>) EntityRegister.DEATH.get(),
                 DeathRender::new
             );
+
+            event.registerEntityRenderer(
+                EntityRegister.SKIRK.get(),
+                SkirkRenderer::new
+            );
         }
 
         @SubscribeEvent
@@ -47,11 +50,19 @@ public class Client {
 
         @SubscribeEvent
         public static void registerItemColors(RegisterColorHandlersEvent.Item event) {
+            // 死亡君主刷怪蛋
             event.register((stack, tintIndex) -> {
                 if (tintIndex == 0) return 0x5A0F1B;
                 if (tintIndex == 1) return 0xC41A22;
                 return 0xFFFFFF;
             }, EntityEggs.DEATH_SPAWN_EGG.get());
+
+            // 深渊孤月·丝柯克刷怪蛋
+            event.register((stack, tintIndex) -> {
+                if (tintIndex == 0) return 0x1A0033;  // 深渊紫黑
+                if (tintIndex == 1) return 0x8A2BE2;  // 星尘紫
+                return 0xFFFFFF;
+            }, EntityEggs.SKIRK_SPAWN_EGG.get());
         }
 
         public static EntityRendererProvider.Context getContext() {
@@ -64,6 +75,7 @@ public class Client {
     public static class GameEvents {
 
         private static final Map<UUID, DeathPlayerRenderer> DEATH_RENDERERS = new HashMap<>();
+        private static final Map<UUID, SkirkPlayerRenderer> SKIRK_RENDERERS = new HashMap<>();
         private static boolean isRendering = false;
 
         @SubscribeEvent
@@ -73,6 +85,7 @@ public class Client {
 
             if (!PlayerConvertToQiusMob.isTransformed(player)) {
                 DEATH_RENDERERS.remove(uuid);
+                SKIRK_RENDERERS.remove(uuid);
                 return;
             }
 
@@ -81,7 +94,6 @@ public class Client {
                 GameRules.BooleanValue rule = serverLevel.getGameRules()
                         .getRule(com.qiuym.qiusmob.ModEvents.ENABLE_SKIN_REPLACE_KEY);
                 if (!rule.get()) {
-                    // 皮肤替换被禁用，使用原版渲染
                     return;
                 }
             }
@@ -97,27 +109,37 @@ public class Client {
             }
 
             AbstractClientPlayer abstractPlayer = (AbstractClientPlayer) player;
+            PlayerConvertToQiusMob.TransformType type = PlayerConvertToQiusMob.getTransformType(player);
 
-            DeathPlayerRenderer renderer = DEATH_RENDERERS.get(uuid);
-            if (renderer == null) {
-                renderer = new DeathPlayerRenderer(context);
-                DEATH_RENDERERS.put(uuid, renderer);
-            }
-
-            // 取消原版渲染，使用自定义渲染器
             event.setCanceled(true);
-
-            // 标记正在渲染，防止递归
             isRendering = true;
+
             try {
-                renderer.render(
-                    abstractPlayer,
-                    0,
-                    0,
-                    event.getPoseStack(),
-                    event.getMultiBufferSource(),
-                    event.getPackedLight()
-                );
+                if (type == PlayerConvertToQiusMob.TransformType.SKIRK) {
+                    SkirkPlayerRenderer renderer = SKIRK_RENDERERS.get(uuid);
+                    if (renderer == null) {
+                        renderer = new SkirkPlayerRenderer(context, true);  // true = Alex 纤细模型
+                        SKIRK_RENDERERS.put(uuid, renderer);
+                    }
+                    renderer.render(
+                        abstractPlayer, 0, 0,
+                        event.getPoseStack(),
+                        event.getMultiBufferSource(),
+                        event.getPackedLight()
+                    );
+                } else {
+                    DeathPlayerRenderer renderer = DEATH_RENDERERS.get(uuid);
+                    if (renderer == null) {
+                        renderer = new DeathPlayerRenderer(context);
+                        DEATH_RENDERERS.put(uuid, renderer);
+                    }
+                    renderer.render(
+                        abstractPlayer, 0, 0,
+                        event.getPoseStack(),
+                        event.getMultiBufferSource(),
+                        event.getPackedLight()
+                    );
+                }
             } finally {
                 isRendering = false;
             }

@@ -34,8 +34,14 @@ public class ModCommands {
                             EntityArgument.getPlayer(context, "player")))
                     )
                 )
+                .then(Commands.literal("skirk")
+                    .then(Commands.argument("player", EntityArgument.player())
+                        .executes(context -> setBindingSkirk(context,
+                            EntityArgument.getPlayer(context, "player")))
+                    )
+                )
                 .then(Commands.literal("clear")
-                    .executes(context -> clearBindingDeath(context))
+                    .executes(context -> clearBindings(context))
                 )
                 .then(Commands.literal("info")
                     .executes(context -> getBindingInfo(context))
@@ -60,11 +66,13 @@ public class ModCommands {
         }
     }
 
+    // ===== 绑定死亡君主（互斥：清空丝柯克） =====
     private static int setBindingDeath(CommandContext<CommandSourceStack> context, ServerPlayer player) throws CommandSyntaxException {
         ServerLevel serverLevel = getServerLevel(context);
         if (serverLevel == null) return 0;
 
         int hash = player.getUUID().hashCode();
+        serverLevel.getGameRules().getRule(ModEvents.SKIRK_BINDING_KEY).set(0, null);
         serverLevel.getGameRules().getRule(ModEvents.BINDING_PLAYER_KEY).set(hash, null);
 
         context.getSource().sendSuccess(() ->
@@ -74,34 +82,55 @@ public class ModCommands {
         return 1;
     }
 
-    private static int clearBindingDeath(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+    // ===== 绑定深渊孤月（互斥：清空死亡君主） =====
+    private static int setBindingSkirk(CommandContext<CommandSourceStack> context, ServerPlayer player) throws CommandSyntaxException {
         ServerLevel serverLevel = getServerLevel(context);
         if (serverLevel == null) return 0;
 
+        int hash = player.getUUID().hashCode();
         serverLevel.getGameRules().getRule(ModEvents.BINDING_PLAYER_KEY).set(0, null);
+        serverLevel.getGameRules().getRule(ModEvents.SKIRK_BINDING_KEY).set(hash, null);
 
         context.getSource().sendSuccess(() ->
-                Component.literal("§e已清除死亡君主绑定"),
+                Component.literal("§5已绑定深渊孤月: " + player.getName().getString()),
                 true
         );
         return 1;
     }
 
+    // ===== 清除所有绑定 =====
+    private static int clearBindings(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        ServerLevel serverLevel = getServerLevel(context);
+        if (serverLevel == null) return 0;
+
+        serverLevel.getGameRules().getRule(ModEvents.BINDING_PLAYER_KEY).set(0, null);
+        serverLevel.getGameRules().getRule(ModEvents.SKIRK_BINDING_KEY).set(0, null);
+
+        context.getSource().sendSuccess(() ->
+                Component.literal("§e已清除所有 Boss 绑定"),
+                true
+        );
+        return 1;
+    }
+
+    // ===== 查询绑定信息 =====
     private static int getBindingInfo(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         ServerLevel serverLevel = getServerLevel(context);
         if (serverLevel == null) return 0;
 
-        int hash = serverLevel.getGameRules().getRule(ModEvents.BINDING_PLAYER_KEY).get();
-        if (hash == 0) {
-            context.getSource().sendSuccess(() ->
-                    Component.literal("§c当前没有绑定任何玩家"),
-                    false
-            );
-            return 0;
-        }
+        int deathHash = serverLevel.getGameRules().getRule(ModEvents.BINDING_PLAYER_KEY).get();
+        int skirkHash = serverLevel.getGameRules().getRule(ModEvents.SKIRK_BINDING_KEY).get();
 
         context.getSource().sendSuccess(() ->
-                Component.literal("§a绑定玩家 UUID Hash: §7" + hash),
+                Component.literal("§6===== QiusMob 绑定信息 ====="),
+                false
+        );
+        context.getSource().sendSuccess(() ->
+                Component.literal("§c死亡君主 Hash: §7" + (deathHash == 0 ? "无" : deathHash)),
+                false
+        );
+        context.getSource().sendSuccess(() ->
+                Component.literal("§5深渊孤月 Hash: §7" + (skirkHash == 0 ? "无" : skirkHash)),
                 false
         );
         return 1;

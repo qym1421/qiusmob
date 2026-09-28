@@ -19,6 +19,12 @@ public class EntityEggs {
                     new Item.Properties()
             )
     );
+    
+    public static final RegistryObject<Item> SKIRK_SPAWN_EGG = ITEMS.register("skirk_spawn_egg",
+            () -> new ForgeSpawnEggItem(EntityRegister.SKIRK,
+                    0x1a0033,  // 主色：深渊紫黑
+                    0x4b0082,  // 副色：深紫
+                    new Item.Properties()));
 
     public static void register(IEventBus bus) {
         ITEMS.register(bus);

@@ -21,6 +21,7 @@ public class ItemRegister {
                     .displayItems((parameters, output) -> {
                         // 在这里添加模组的所有物品
                         output.accept(EntityEggs.DEATH_SPAWN_EGG.get());
+                        output.accept(EntityEggs.SKIRK_SPAWN_EGG.get());
                     })
                     .build()
     );
