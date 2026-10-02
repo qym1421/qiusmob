@@ -25,6 +25,13 @@ public class EntityEggs {
                     0x1a0033,  // 主色：深渊紫黑
                     0x4b0082,  // 副色：深紫
                     new Item.Properties()));
+                    
+    public static final RegistryObject<Item> ABYSS_CONSCIOUSNESS_SPAWN_EGG = ITEMS.register(
+            "abyss_consciousness_spawn_egg",
+            () -> new ForgeSpawnEggItem(
+                    EntityRegister.ABYSS_CONSCIOUSNESS,
+                    0x1A0033, 0x8A2BE2,
+                    new Item.Properties()));
 
     public static void register(IEventBus bus) {
         ITEMS.register(bus);

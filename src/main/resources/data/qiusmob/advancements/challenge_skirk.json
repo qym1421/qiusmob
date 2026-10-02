@@ -1,0 +1,12 @@
+{
+    "parent": "qiusmob:goal_skirk_defeat",
+    "display": {
+        "icon": { "item": "minecraft:dragon_head" },
+        "title": { "translate": "advancement.qiusmob.challenge_skirk.title" },
+        "description": { "translate": "advancement.qiusmob.challenge_skirk.desc" },
+        "frame": "challenge"
+    },
+    "criteria": {
+        "kill_skirk": { "trigger": "minecraft:impossible" }
+    }
+}

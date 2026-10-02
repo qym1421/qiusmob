@@ -1,0 +1,12 @@
+{
+    "parent": "qiusmob:challenge_death",
+    "display": {
+        "icon": { "item": "minecraft:end_portal_frame" },
+        "title": { "translate": "advancement.qiusmob.goal_skirk_altar.title" },
+        "description": { "translate": "advancement.qiusmob.goal_skirk_altar.desc" },
+        "frame": "goal"
+    },
+    "criteria": {
+        "found_altar": { "trigger": "minecraft:impossible" }
+    }
+}

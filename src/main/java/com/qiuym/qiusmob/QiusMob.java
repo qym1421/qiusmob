@@ -2,6 +2,7 @@ package com.qiuym.qiusmob;
 
 import com.qiuym.qiusmob.network.NetworkHandler;
 import com.qiuym.qiusmob.player.*;
+import com.qiuym.qiusmob.worldgen.ModFeatures;
 import com.qiuym.qiusmob.item.EntityEggs;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.IEventBus;
@@ -22,6 +23,7 @@ public class QiusMob {
         ItemRegister.register(bus);
         NetworkHandler.register();
         PlayerConvertToQiusMob.register();
+        ModFeatures.FEATURES.register(bus);
         MinecraftForge.EVENT_BUS.register(this);
         
         LOGGER.info("[QiusMob] 模组加载完成！");

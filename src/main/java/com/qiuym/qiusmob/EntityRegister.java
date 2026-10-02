@@ -2,6 +2,7 @@ package com.qiuym.qiusmob;
 
 import com.qiuym.qiusmob.entity.Death;
 import com.qiuym.qiusmob.entity.skirk.SkirkEntity;
+import com.qiuym.qiusmob.entity.consciousness.AbyssConsciousnessEntity;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
@@ -20,6 +21,13 @@ public class EntityRegister {
             () -> EntityType.Builder.of(SkirkEntity::new, MobCategory.MONSTER)
                     .sized(1.8f, 2.0f)
                     .build(new ResourceLocation(QiusMob.MOD_ID, "skirk").toString()));
+    
+    public static final RegistryObject<EntityType<AbyssConsciousnessEntity>> ABYSS_CONSCIOUSNESS =
+            ENTITIES.register("abyss_consciousness",
+                    () -> EntityType.Builder.of(AbyssConsciousnessEntity::new, MobCategory.CREATURE)
+                            .sized(0.6f, 1.8f)
+                            .clientTrackingRange(64)
+                            .build(ResourceLocation.fromNamespaceAndPath(QiusMob.MOD_ID, "abyss_consciousness").toString()));
 
     public static void register(IEventBus bus) {
         ENTITIES.register(bus);

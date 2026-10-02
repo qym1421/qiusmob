@@ -1,8 +1,10 @@
 {
     "entity.qiusmob.death": "§c§lDeath Monarch",
     "entity.qiusmob.skirk": "§5§lSkirk, the Abyssal Moon",
+    "entity.qiusmob.abyss_consciousness": "§4§l§n§oAbyss Consciousness",
     "item.qiusmob.death_spawn_egg": "§c§lDeath Monarch",
     "item.qiusmob.skirk_spawn_egg": "§5§lSkirk, the Abyssal Moon",
+    "item.qiusmob.abyss_consciousness_spawn_egg": "§4§l§n§oAbyss Consciousness",
 
     "key.category.qiusmob.general": "§6§lQiusMob · General",
     "key.category.qiusmob.death": "§c§lQiusMob · Death Monarch",
@@ -33,5 +35,44 @@
     "gamerule.qiusmobSkirkBinding": "Abyssal Moon Binding Player",
     "gamerule.qiusmobSkirkBinding.description": "UUID hash of the bound player, only this player can transform into Skirk",
     "gamerule.qiusmobDevourerOwner": "Devourer Owner",
-    "gamerule.qiusmobDevourerOwner.description": "UUID hash of the bound player, the Devourer only targets entities around this player"
+    "gamerule.qiusmobDevourerOwner.description": "UUID hash of the bound player, the Devourer only targets entities around this player",
+
+    "dialogue.qiusmob.consciousness.first_death": "§4§l§n§oYou killed me. Now... I will follow you forever.",
+    "dialogue.qiusmob.consciousness.welcome_back": "§4§l§n§oYou're finally back... I've been waiting.",
+    "dialogue.qiusmob.consciousness.touch": "§4§l§n§oDon't move. Let me look at you.",
+    "dialogue.qiusmob.consciousness.hit_by_target": "§4§l§n§oYou finally touched me... a little more, please?",
+    "dialogue.qiusmob.consciousness.angry_other": "§4§l§n§oWho allowed you to touch me? Every inch of me belongs to him.",
+    "dialogue.qiusmob.consciousness.protect_target": "§4§l§n§oHow dare you touch him? You'll regret it.",
+    "dialogue.qiusmob.consciousness.protect_target2": "§4§l§n§oHe is mine. Even one more glance is a sin.",
+    "dialogue.qiusmob.consciousness.teleport": "§4§l§n§oI'm back.",
+    "dialogue.qiusmob.consciousness.idle_watch": "§4§l§n§oI've always been watching you.",
+    "dialogue.qiusmob.consciousness.idle_watch2": "§4§l§n§oYour smile today was beautiful—but only for others. I don't like that.",
+    "dialogue.qiusmob.consciousness.idle_watch3": "§4§l§n§oYou seem to be thinking of someone else. It's fine. In the end, you can only think of me.",
+
+    "message.qiusmob.death.summoned": "§c§lDeath Monarch descends.",
+    "message.qiusmob.death.bound": "§cYou are marked by the Abyss.",
+    "message.qiusmob.death.already_exists": "§cA Death Monarch already exists in this world.",
+    "message.qiusmob.skirk.summoned": "§5Skirk, the Abyssal Moon descends.",
+    "message.qiusmob.skirk.bound": "§5Skirk has chosen you.",
+    "message.qiusmob.skirk.already_exists": "§5A Skirk already exists in this world.",
+    "message.qiusmob.skirk.night_only": "§5The Abyss only descends at night.",
+    "message.qiusmob.consciousness.spawned": "§4You killed me. Now, I follow you.",
+
+    "advancement.qiusmob.root.title": "§4Heretic",
+    "advancement.qiusmob.root.desc": "Entering the Nether, you hear an unknown force whisper:\n“■oul sand■‘cross’■, and a wither ■ull…”",
+
+    "advancement.qiusmob.goal_summon_death.title": "§cThe Beginning",
+    "advancement.qiusmob.goal_summon_death.desc": "“You have summoned Death…”\nYou know: you must defeat it.",
+
+    "advancement.qiusmob.challenge_death.title": "§c§lMaster of Death... Cannot Feel Death...",
+    "advancement.qiusmob.challenge_death.desc": "“Death will follow you…”\nYou feel you can become Death itself…\n§7Click §f[R] §7to turn yourself into §4§lDeath\n§7“The Abyss awaits…” An unknown voice guides you to find and activate a structure…",
+
+    "advancement.qiusmob.goal_skirk_altar.title": "§5Eye of Ender…",
+    "advancement.qiusmob.goal_skirk_altar.desc": "You found the structure, but it seems to need an Eye of Ender.",
+
+    "advancement.qiusmob.goal_skirk_defeat.title": "§5Final Calamity…",
+    "advancement.qiusmob.goal_skirk_defeat.desc": "You seem able to counterattack using the Abyss Consciousness…",
+
+    "advancement.qiusmob.challenge_skirk.title": "§5§lI Am the Abyss",
+    "advancement.qiusmob.challenge_skirk.desc": "§7Click §f[R] §7to turn yourself into §5§lSkirk"
 }

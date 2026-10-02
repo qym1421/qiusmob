@@ -1,0 +1,12 @@
+{
+    "parent": "qiusmob:goal_summon_death",
+    "display": {
+        "icon": { "item": "minecraft:nether_star" },
+        "title": { "translate": "advancement.qiusmob.challenge_death.title" },
+        "description": { "translate": "advancement.qiusmob.challenge_death.desc" },
+        "frame": "challenge"
+    },
+    "criteria": {
+        "kill_death": { "trigger": "minecraft:impossible" }
+    }
+}

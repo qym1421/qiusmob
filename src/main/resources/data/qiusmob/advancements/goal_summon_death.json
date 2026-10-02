@@ -1,0 +1,14 @@
+{
+    "parent": "qiusmob:root",
+    "display": {
+        "icon": { "item": "minecraft:wither_skeleton_skull" },
+        "title": { "translate": "advancement.qiusmob.goal_summon_death.title" },
+        "description": { "translate": "advancement.qiusmob.goal_summon_death.desc" },
+        "frame": "goal"
+    },
+    "criteria": {
+        "summon_death": {
+            "trigger": "minecraft:impossible"
+        }
+    }
+}

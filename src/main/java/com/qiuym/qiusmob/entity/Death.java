@@ -3,6 +3,11 @@ package com.qiuym.qiusmob.entity;
 import com.qiuym.qiusmob.ModEvents;
 import com.qiuym.qiusmob.entity.ai.BossAI;
 import com.qiuym.qiusmob.entity.ai.LookGoal;
+import com.qiuym.qiusmob.EntityRegister;
+import com.qiuym.qiusmob.QiusMob;
+import com.qiuym.qiusmob.entity.consciousness.AbyssConsciousnessEntity;
+import net.minecraft.advancements.Advancement;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerBossEvent;
 import net.minecraft.server.level.ServerLevel;
@@ -68,6 +73,38 @@ public class Death extends Monster implements GeoEntity {
 
     @Override
     public void knockback(double strength, double x, double z) {
+    }
+    
+    @Override
+    public void die(DamageSource source) {
+        super.die(source);
+    
+        if (source.getEntity() instanceof ServerPlayer player) {
+            ServerLevel level = (ServerLevel) level();
+    
+            int hash = player.getUUID().hashCode();
+            level.getGameRules().getRule(ModEvents.BINDING_PLAYER_KEY).set(hash, null);
+            level.getGameRules().getRule(ModEvents.SKIRK_BINDING_KEY).set(0, null);
+    
+            // 生成深渊意识
+            AbyssConsciousnessEntity consciousness = EntityRegister.ABYSS_CONSCIOUSNESS.get().create(level);
+            if (consciousness != null) {
+                consciousness.moveTo(player.getX() - 2, player.getY(), player.getZ() - 2,
+                        player.getYRot(), 0);
+                consciousness.bindTo(player);
+                level.addFreshEntity(consciousness);
+            }
+    
+            player.displayClientMessage(
+                    Component.translatable("message.qiusmob.death.bound"), true);
+    
+            // 授勋成就
+            Advancement adv = player.getServer().getAdvancements()
+                    .getAdvancement(new ResourceLocation(QiusMob.MOD_ID, "challenge_death"));
+            if (adv != null) {
+                player.getAdvancements().award(adv, "kill_death");
+            }
+        }
     }
 
     @Override

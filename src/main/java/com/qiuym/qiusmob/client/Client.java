@@ -6,6 +6,7 @@ import com.qiuym.qiusmob.client.render.*;
 import com.qiuym.qiusmob.entity.Death;
 import com.qiuym.qiusmob.item.EntityEggs;
 import com.qiuym.qiusmob.player.PlayerConvertToQiusMob;
+import com.qiuym.qiusmob.client.render.consciousness.AbyssConsciousnessRenderer;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.server.level.ServerLevel;
@@ -41,6 +42,11 @@ public class Client {
                 EntityRegister.SKIRK.get(),
                 SkirkRenderer::new
             );
+            
+            event.registerEntityRenderer(
+                    EntityRegister.ABYSS_CONSCIOUSNESS.get(),
+                    AbyssConsciousnessRenderer::new
+            );
         }
 
         @SubscribeEvent
@@ -63,6 +69,12 @@ public class Client {
                 if (tintIndex == 1) return 0x8A2BE2;  // 星尘紫
                 return 0xFFFFFF;
             }, EntityEggs.SKIRK_SPAWN_EGG.get());
+            
+            event.register((stack, tintIndex) -> {
+                if (tintIndex == 0) return 0x1A0033;
+                if (tintIndex == 1) return 0x8A2BE2;
+                return 0xFFFFFF;
+            }, EntityEggs.ABYSS_CONSCIOUSNESS_SPAWN_EGG.get());
         }
 
         public static EntityRendererProvider.Context getContext() {

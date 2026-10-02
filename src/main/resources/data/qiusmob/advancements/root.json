@@ -1,0 +1,17 @@
+{
+    "display": {
+        "icon": { "item": "minecraft:netherrack" },
+        "title": { "translate": "advancement.qiusmob.root.title" },
+        "description": { "translate": "advancement.qiusmob.root.desc" },
+        "frame": "task",
+        "background": "minecraft:textures/block/netherrack.png",
+        "show_toast": true,
+        "announce_to_chat": true
+    },
+    "criteria": {
+        "enter_nether": {
+            "trigger": "minecraft:changed_dimension",
+            "conditions": { "to": "minecraft:the_nether" }
+        }
+    }
+}

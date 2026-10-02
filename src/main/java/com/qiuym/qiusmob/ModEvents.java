@@ -2,6 +2,8 @@ package com.qiuym.qiusmob;
 
 import com.qiuym.qiusmob.entity.Death;
 import com.qiuym.qiusmob.entity.skirk.SkirkEntity;
+import com.qiuym.qiusmob.entity.consciousness.AbyssConsciousnessEntity;
+import net.minecraftforge.event.entity.living.LivingHurtEvent;
 import net.minecraft.world.level.GameRules;
 import net.minecraftforge.event.entity.EntityAttributeCreationEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -23,6 +25,7 @@ public class ModEvents {
     public static void onEntityAttributeCreation(EntityAttributeCreationEvent event) {
         event.put(EntityRegister.DEATH.get(), Death.createAttributes().build());
         event.put(EntityRegister.SKIRK.get(), SkirkEntity.createAttributes().build());
+        event.put(EntityRegister.ABYSS_CONSCIOUSNESS.get(), AbyssConsciousnessEntity.createAttributes().build());
     }
 
     @SubscribeEvent

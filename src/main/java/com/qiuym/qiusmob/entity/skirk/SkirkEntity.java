@@ -1,5 +1,9 @@
 package com.qiuym.qiusmob.entity.skirk;
 
+import com.qiuym.qiusmob.ModEvents;
+import com.qiuym.qiusmob.QiusMob;
+import net.minecraft.advancements.Advancement;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -149,6 +153,29 @@ public class SkirkEntity extends PathfinderMob {
                     return true;
                 }
         ));
+    }
+    
+    @Override
+    public void die(DamageSource source) {
+        super.die(source);
+    
+        if (source.getEntity() instanceof ServerPlayer player) {
+            ServerLevel level = (ServerLevel) level();
+    
+            int hash = player.getUUID().hashCode();
+            level.getGameRules().getRule(ModEvents.SKIRK_BINDING_KEY).set(hash, null);
+            level.getGameRules().getRule(ModEvents.BINDING_PLAYER_KEY).set(0, null);
+    
+            player.displayClientMessage(
+                    Component.translatable("message.qiusmob.skirk.bound"), true);
+    
+            // 授勋成就
+            Advancement adv = player.getServer().getAdvancements()
+                    .getAdvancement(new ResourceLocation(QiusMob.MOD_ID, "challenge_skirk"));
+            if (adv != null) {
+                player.getAdvancements().award(adv, "kill_skirk");
+            }
+        }
     }
 
     // ===== 主 tick =====

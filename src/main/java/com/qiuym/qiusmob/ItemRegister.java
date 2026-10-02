@@ -22,6 +22,7 @@ public class ItemRegister {
                         // 在这里添加模组的所有物品
                         output.accept(EntityEggs.DEATH_SPAWN_EGG.get());
                         output.accept(EntityEggs.SKIRK_SPAWN_EGG.get());
+                        output.accept(EntityEggs.ABYSS_CONSCIOUSNESS_SPAWN_EGG.get());
                     })
                     .build()
     );

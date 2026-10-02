@@ -4,6 +4,7 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.qiuym.qiusmob.ModEvents;
+import com.qiuym.qiusmob.entity.consciousness.AbyssConsciousnessEntity;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.EntityArgument;
@@ -52,6 +53,20 @@ public class ModCommands {
                         .executes(context -> setDevourerOwner(context,
                             EntityArgument.getPlayer(context, "player")))
                     )
+                )
+            )
+            .then(Commands.literal("consciousness")
+                .then(Commands.literal("bind")
+                    .then(Commands.argument("player", EntityArgument.player())
+                        .executes(context -> bindConsciousness(context,
+                            EntityArgument.getPlayer(context, "player")))
+                    )
+                )
+                .then(Commands.literal("unbind")
+                    .executes(context -> unbindConsciousness(context))
+                )
+                .then(Commands.literal("info")
+                    .executes(context -> consciousnessInfo(context))
                 )
             )
         );
@@ -149,6 +164,59 @@ public class ModCommands {
                 true
         );
         return 1;
+    }
+    
+    private static int bindConsciousness(CommandContext<CommandSourceStack> context, ServerPlayer player) throws CommandSyntaxException {
+        ServerLevel serverLevel = getServerLevel(context);
+        if (serverLevel == null) return 0;
+    
+        // 找最近的意识实体
+        AbyssConsciousnessEntity entity = null;
+        for (AbyssConsciousnessEntity e : serverLevel.getEntitiesOfClass(
+                AbyssConsciousnessEntity.class, player.getBoundingBox().inflate(64))) {
+            entity = e;
+            break;
+        }
+    
+        if (entity == null) {
+            context.getSource().sendFailure(Component.literal("§c附近没有深渊意识！"));
+            return 0;
+        }
+    
+        entity.bindTo(player);
+        context.getSource().sendSuccess(() ->
+                Component.literal("§5已将深渊意识绑定到: " + player.getName().getString()), true);
+        return 1;
+    }
+    
+    private static int unbindConsciousness(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        ServerLevel serverLevel = getServerLevel(context);
+        if (serverLevel == null) return 0;
+    
+        for (AbyssConsciousnessEntity e : serverLevel.getEntitiesOfClass(
+                AbyssConsciousnessEntity.class, context.getSource().getPlayerOrException().getBoundingBox().inflate(64))) {
+            e.unbind();
+        }
+    
+        context.getSource().sendSuccess(() -> Component.literal("§e已解除绑定"), true);
+        return 1;
+    }
+    
+    private static int consciousnessInfo(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        ServerLevel serverLevel = getServerLevel(context);
+        if (serverLevel == null) return 0;
+    
+        for (AbyssConsciousnessEntity e : serverLevel.getEntitiesOfClass(
+                AbyssConsciousnessEntity.class, context.getSource().getPlayerOrException().getBoundingBox().inflate(64))) {
+            context.getSource().sendSuccess(() ->
+                    Component.literal("§5意识阶段: " + e.getPhase().name()), false);
+            context.getSource().sendSuccess(() ->
+                    Component.literal("§5绑定对象: " + (e.getTargetUUID() != null ? e.getTargetUUID() : "无")), false);
+            return 1;
+        }
+    
+        context.getSource().sendFailure(Component.literal("§c附近没有深渊意识！"));
+        return 0;
     }
 
     // ===== 辅助方法 =====

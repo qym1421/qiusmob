@@ -1,8 +1,10 @@
 {
     "entity.qiusmob.death": "§c§l死亡君主",
     "entity.qiusmob.skirk": "§5§l深渊孤月 · 丝柯克",
+    "entity.qiusmob.abyss_consciousness": "§4§l§n§o深渊意识",
     "item.qiusmob.death_spawn_egg": "召唤 §c§l死亡君主",
     "item.qiusmob.skirk_spawn_egg": "召唤 §5§l深渊孤月 · 丝柯克",
+    "item.qiusmob.abyss_consciousness_spawn_egg": "召唤 §4§l§n§o深渊意识",
 
     "key.category.qiusmob.general": "§6§lQiusMob · 通用",
     "key.category.qiusmob.death": "§c§lQiusMob · 死亡君主",
@@ -33,5 +35,44 @@
     "gamerule.qiusmobSkirkBinding": "深渊孤月绑定玩家",
     "gamerule.qiusmobSkirkBinding.description": "绑定玩家的UUID哈希，只有该玩家可以变形为深渊孤月",
     "gamerule.qiusmobDevourerOwner": "神明吞噬者拥有者",
-    "gamerule.qiusmobDevourerOwner.description": "绑定玩家的UUID哈希，神明吞噬者只在该玩家周围索敌"
+    "gamerule.qiusmobDevourerOwner.description": "绑定玩家的UUID哈希，神明吞噬者只在该玩家周围索敌",
+
+    "dialogue.qiusmob.consciousness.first_death": "§4§l§n§o你杀死了我。现在……我追着你不放。",
+    "dialogue.qiusmob.consciousness.welcome_back": "§4§l§n§o你终于回来了……我一直都在等你。",
+    "dialogue.qiusmob.consciousness.touch": "§4§l§n§o别动。让我好好看看你。",
+    "dialogue.qiusmob.consciousness.hit_by_target": "§4§l§n§o你终于愿意碰我了……再多一点，好不好？",
+    "dialogue.qiusmob.consciousness.angry_other": "§4§l§n§o谁允许你碰我的？你碰的每一寸，都是他的。",
+    "dialogue.qiusmob.consciousness.protect_target": "§4§l§n§o你敢碰他？你会后悔的。",
+    "dialogue.qiusmob.consciousness.protect_target2": "§4§l§n§o他是我的。你多看一眼都是罪。",
+    "dialogue.qiusmob.consciousness.teleport": "§4§l§n§o我回来了。",
+    "dialogue.qiusmob.consciousness.idle_watch": "§4§l§n§o我一直都在看着你。",
+    "dialogue.qiusmob.consciousness.idle_watch2": "§4§l§n§o你今天的笑容，很好看——但只对别人笑，我不喜欢。",
+    "dialogue.qiusmob.consciousness.idle_watch3": "§4§l§n§o你好像在想别人。没关系，想吧。反正到最后，你只能想我。",
+
+    "message.qiusmob.death.summoned": "§c§l死亡君主降临。",
+    "message.qiusmob.death.bound": "§c你被深渊标记了。",
+    "message.qiusmob.death.already_exists": "§c这个世界已经有一只死亡君主了。",
+    "message.qiusmob.skirk.summoned": "§5深渊孤月降临。",
+    "message.qiusmob.skirk.bound": "§5丝柯克选择了你。",
+    "message.qiusmob.skirk.already_exists": "§5这个世界已经有一只丝柯克了。",
+    "message.qiusmob.skirk.night_only": "§5深渊只在夜晚降临。",
+    "message.qiusmob.consciousness.spawned": "§4你杀死了我。现在，我追着你不放。",
+
+    "advancement.qiusmob.root.title": "§4异端",
+    "advancement.qiusmob.root.desc": "初入下界，你感受到一股不知名的力量在低语：\n“■魂沙摆■‘十’■，还有凋■骷■■…”",
+
+    "advancement.qiusmob.goal_summon_death.title": "§c开端",
+    "advancement.qiusmob.goal_summon_death.desc": "“你召唤了死亡…”\n你知道：你需要击败死亡。",
+
+    "advancement.qiusmob.challenge_death.title": "§c§l掌控死亡者…不可感受死亡…",
+    "advancement.qiusmob.challenge_death.desc": "“死亡会一直缠着你…”\n你感受到似乎可以变成死亡本身…\n§7Click §f[R] §7to turn yourself into §4§lDeath\n§7“深渊在等着你…”一股莫名的声音传来，祂在指引你找到并激活某个结构…",
+
+    "advancement.qiusmob.goal_skirk_altar.title": "§5末影之眼…",
+    "advancement.qiusmob.goal_skirk_altar.desc": "你找到了那个结构，但似乎需要一个末影之眼。",
+
+    "advancement.qiusmob.goal_skirk_defeat.title": "§5终灾…",
+    "advancement.qiusmob.goal_skirk_defeat.desc": "你似乎可以依靠深渊意识反击…",
+
+    "advancement.qiusmob.challenge_skirk.title": "§5§l吾即深渊",
+    "advancement.qiusmob.challenge_skirk.desc": "§7Click §f[R] §7to turn yourself into §5§lSkirk"
 }
