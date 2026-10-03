@@ -52,6 +52,11 @@ public class Client {
         @SubscribeEvent
         public static void onAddLayers(EntityRenderersEvent.AddLayers event) {
             cachedContext = event.getContext();
+        
+            var renderer = event.getSkin("slim");
+            if (renderer instanceof net.minecraft.client.renderer.entity.player.PlayerRenderer playerRenderer) {
+                playerRenderer.addLayer(new AbyssCorruptionLayer(playerRenderer));
+            }
         }
 
         @SubscribeEvent

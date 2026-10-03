@@ -14,6 +14,7 @@ public class DeathPlayerRenderer extends PlayerRenderer {
     public DeathPlayerRenderer(EntityRendererProvider.Context context) {
         // true = Alex 模型（细手臂）
         super(context, true);
+        this.addLayer(new AbyssCorruptionLayer(this));
     }
 
     @Override

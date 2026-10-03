@@ -18,6 +18,7 @@ public class SkirkPlayerRenderer extends PlayerRenderer {
 
     public SkirkPlayerRenderer(EntityRendererProvider.Context context, boolean slim) {
         super(context, slim);
+        this.addLayer(new AbyssCorruptionLayer(this));
     }
 
     @Override
