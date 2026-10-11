@@ -8,6 +8,7 @@ import com.qiuym.qiusmob.item.EntityEggs;
 import com.qiuym.qiusmob.player.PlayerConvertToQiusMob;
 import com.qiuym.qiusmob.client.render.consciousness.AbyssConsciousnessRenderer;
 import net.minecraft.client.player.AbstractClientPlayer;
+import net.minecraft.client.renderer.entity.player.PlayerRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.EntityType;
@@ -53,9 +54,9 @@ public class Client {
         public static void onAddLayers(EntityRenderersEvent.AddLayers event) {
             cachedContext = event.getContext();
         
-            var renderer = event.getSkin("slim");
-            if (renderer instanceof net.minecraft.client.renderer.entity.player.PlayerRenderer playerRenderer) {
-                playerRenderer.addLayer(new AbyssCorruptionLayer(playerRenderer));
+            var slim = event.getSkin("slim");
+            if (slim instanceof PlayerRenderer r) {
+                r.addLayer(new AbyssCorruptionLayer(r));
             }
         }
 

@@ -3,6 +3,10 @@ package com.qiuym.qiusmob;
 import com.qiuym.qiusmob.entity.Death;
 import com.qiuym.qiusmob.entity.consciousness.AbyssConsciousnessEntity;
 import com.qiuym.qiusmob.entity.skirk.SkirkEntity;
+import com.qiuym.qiusmob.network.NetworkHandler;
+import com.qiuym.qiusmob.network.SkirkBindSyncPacket;
+import net.minecraft.server.MinecraftServer;
+import net.minecraftforge.network.PacketDistributor;
 import net.minecraft.advancements.Advancement;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
@@ -19,6 +23,7 @@ import net.minecraft.world.level.block.EndPortalFrameBlock;
 import net.minecraft.world.level.block.WitherSkullBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
+import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.event.level.BlockEvent;
@@ -39,6 +44,30 @@ public class ServerHandler {
     // ===== 游戏总线 =====
     @Mod.EventBusSubscriber(modid = QiusMob.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE)
     public static class ForgeBusHandler {
+    
+        @SubscribeEvent
+        public static void onServerTick(TickEvent.ServerTickEvent event) {
+            if (event.phase != TickEvent.Phase.END) return;
+        
+            MinecraftServer server = event.getServer();
+            if (server == null) return;
+        
+            // 每 20 tick 检测一次
+            if (server.getTickCount() % 20 != 0) return;
+        
+            for (ServerPlayer player : server.getPlayerList().getPlayers()) {
+                ServerLevel level = player.serverLevel();
+        
+                int playerHash = player.getUUID().hashCode();
+                int skirkHash = level.getGameRules().getRule(ModEvents.SKIRK_BINDING_KEY).get();
+                boolean bound = (skirkHash != 0 && skirkHash == playerHash);
+        
+                NetworkHandler.INSTANCE.send(
+                        PacketDistributor.PLAYER.with(() -> player),
+                        new SkirkBindSyncPacket(bound)
+                );
+            }
+        }
 
         // ===== 对象被攻击 → 意识反击 =====
         @SubscribeEvent

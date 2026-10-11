@@ -3,6 +3,7 @@ package com.qiuym.qiusmob.client.render;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.qiuym.qiusmob.QiusMob;
+import com.qiuym.qiusmob.client.ClientState;
 import com.qiuym.qiusmob.player.PlayerConvertToQiusMob;
 import net.minecraft.client.model.PlayerModel;
 import net.minecraft.client.player.AbstractClientPlayer;
@@ -28,7 +29,11 @@ public class AbyssCorruptionLayer extends RenderLayer<AbstractClientPlayer, Play
                        AbstractClientPlayer player, float limbSwing, float limbSwingAmount,
                        float partialTicks, float ageInTicks, float netHeadYaw, float headPitch) {
 
-        if (!PlayerConvertToQiusMob.isTransformed(player)) return;
+        // 已变形 → 不显示（自定义模型会覆盖）
+        if (PlayerConvertToQiusMob.isTransformed(player)) return;
+
+        // 未绑定 Skirk → 不显示
+        if (!ClientState.isSkirkBound()) return;
 
         VertexConsumer consumer = buffer.getBuffer(
                 RenderType.entityTranslucent(CORRUPTION_TEXTURE));

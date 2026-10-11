@@ -230,7 +230,13 @@ public class PlayerConvertToQiusMob {
         player.getAttributes().getInstance(Attributes.MAX_HEALTH).setBaseValue(5000.0D);
         player.getAttributes().getInstance(Attributes.MOVEMENT_SPEED).setBaseValue(0.3D);
         player.getAttributes().getInstance(Attributes.ATTACK_DAMAGE).setBaseValue(99999.0D);
-        player.setHealth(5000.0f);
+
+        // 不直接 setHealth(5000)，改为从当前血量开始每 tick +50
+        // 初始化阶段为 DORMANT
+        skirkPhaseMap.put(uuid, SkirkPhase.DORMANT);
+        skirkTimerMap.put(uuid, 0);
+        skirkAwakeningTickMap.put(uuid, 0);
+        skirkAwakeningStartedMap.put(uuid, false);
 
         if (level instanceof ServerLevel serverLevel) {
             GameRules.BooleanValue rule = serverLevel.getGameRules()
@@ -239,11 +245,6 @@ public class PlayerConvertToQiusMob {
         }
 
         bossEvent.setProgress(1.0f);
-
-        skirkPhaseMap.put(uuid, SkirkPhase.DORMANT);
-        skirkTimerMap.put(uuid, 0);
-        skirkAwakeningTickMap.put(uuid, 0);
-        skirkAwakeningStartedMap.put(uuid, false);
 
         if (level instanceof ServerLevel serverLevel) {
             serverLevel.sendParticles(ParticleTypes.PORTAL,
@@ -603,11 +604,21 @@ public class PlayerConvertToQiusMob {
         SkirkPhase phase = skirkPhaseMap.getOrDefault(uuid, SkirkPhase.DORMANT);
         int timer = skirkTimerMap.getOrDefault(uuid, 0);
 
+        // DORMANT 阶段：每 tick +50 血，满血后切换到 AWAKENED
         if (phase == SkirkPhase.DORMANT) {
+            float current = player.getHealth();
+            float max = player.getMaxHealth();
+            if (current < max) {
+                player.setHealth(Math.min(current + 50.0f, max));
+            } else {
+                skirkPhaseMap.put(uuid, SkirkPhase.AWAKENED);
+                player.displayClientMessage(Component.literal("§5§l【深渊觉醒】"), true);
+            }
             return;
         }
 
         if (phase == SkirkPhase.AWAKENING) {
+            // 保留旧逻辑（如果以后想用）
             boolean started = skirkAwakeningStartedMap.getOrDefault(uuid, false);
             int awakeningTick = skirkAwakeningTickMap.getOrDefault(uuid, 0);
 
@@ -741,31 +752,9 @@ public class PlayerConvertToQiusMob {
             UUID uuid = player.getUUID();
             SkirkPhase phase = skirkPhaseMap.getOrDefault(uuid, SkirkPhase.DORMANT);
 
+            // 只有 AWAKENING 阶段锁血
             if (phase == SkirkPhase.AWAKENING) {
                 event.setCanceled(true);
-                return;
-            }
-
-            if (phase == SkirkPhase.DORMANT) {
-                skirkPhaseMap.put(uuid, SkirkPhase.AWAKENING);
-                skirkAwakeningStartedMap.put(uuid, false);
-                skirkAwakeningTickMap.put(uuid, 0);
-
-                if (player.level() instanceof ServerLevel serverLevel) {
-                    AABB box = AABB.ofSize(player.position(), 80, 80, 80);
-                    List<LivingEntity> entities = serverLevel.getEntitiesOfClass(LivingEntity.class, box);
-                    for (LivingEntity e : entities) {
-                        if (e == player) continue;
-                        if (e instanceof Player other) {
-                            var team = player.getTeam();
-                            var otherTeam = other.getTeam();
-                            if (team != null && team == otherTeam && !team.isAllowFriendlyFire()) {
-                                continue;
-                            }
-                        }
-                        e.hurt(player.damageSources().magic(), 99999.0f);
-                    }
-                }
             }
         }
 

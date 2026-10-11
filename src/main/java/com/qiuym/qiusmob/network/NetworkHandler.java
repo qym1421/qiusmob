@@ -45,5 +45,9 @@ public class NetworkHandler {
                 SightModePacket::encode, 
                 SightModePacket::new, 
                 SightModePacket::handle);
+        INSTANCE.registerMessage(id++, SkirkBindSyncPacket.class,
+                SkirkBindSyncPacket::encode, 
+                SkirkBindSyncPacket::new, 
+                SkirkBindSyncPacket::handle);
     }
 }
