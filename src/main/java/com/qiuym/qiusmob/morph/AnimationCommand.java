@@ -45,6 +45,7 @@ public class AnimationCommand {
     private static final Map<UUID, List<String>> INJECTED_CONTROLLERS = new HashMap<>();
     private static final List<AnimEntry> ANIM_CACHE = new ArrayList<>();
     private static final Map<String, AnimEntry> ANIM_INDEX = new HashMap<>();
+    private static final Map<String, Map<String, List<String>>> WORD_INDEX = new HashMap<>();
     private static volatile boolean cacheLoaded = false;
 
     private static final Map<UUID, String> SHAPE_CACHE = new HashMap<>();
@@ -58,6 +59,8 @@ public class AnimationCommand {
 
     private static long lastAttackTrigger = 0;
     private static long lastUseTrigger = 0;
+    private static long lastJumpTrigger = 0;
+    private static boolean lastOnGround = true;
     private static final Map<UUID, AnimationController<GeoEntity>> MOVEMENT_CTRL = new HashMap<>();
 
     public static class AnimEntry {
@@ -97,6 +100,7 @@ public class AnimationCommand {
 
         ANIM_CACHE.clear();
         ANIM_INDEX.clear();
+        WORD_INDEX.clear();
 
         Map<ResourceLocation, Resource> files = mc.getResourceManager()
                 .listResources("animations", p -> p.getPath().endsWith(".animation.json"));
@@ -126,7 +130,26 @@ public class AnimationCommand {
             }
         }
         ANIM_CACHE.sort(Comparator.comparing(a -> a.fullId));
+        buildWordIndex();
         cacheLoaded = true;
+    }
+
+    private static void buildWordIndex() {
+        Set<String> seen = new HashSet<>();
+        for (AnimEntry e : ANIM_CACHE) {
+            String filePrefix = e.namespace + ":" + e.filePath;
+            if (!seen.add(filePrefix)) continue;
+            String fileName = e.filePath;
+            int slash = fileName.lastIndexOf('/');
+            String base = slash >= 0 ? fileName.substring(slash + 1) : fileName;
+            for (String w : base.toLowerCase(Locale.ROOT).split("_")) {
+                if (w.isEmpty()) continue;
+                WORD_INDEX.computeIfAbsent(e.namespace, k -> new HashMap<>())
+                        .computeIfAbsent(w, k -> new ArrayList<>());
+                List<String> list = WORD_INDEX.get(e.namespace).get(w);
+                if (!list.contains(filePrefix)) list.add(filePrefix);
+            }
+        }
     }
 
     private static void loadPersistentCache() {
@@ -170,6 +193,7 @@ public class AnimationCommand {
             MOVEMENT_CTRL.remove(mc.player.getUUID());
             FORM_STATE.remove(mc.player.getUUID());
             PENDING_FORM_CHANGE.remove(mc.player.getUUID());
+            lastOnGround = true;
             return;
         }
 
@@ -188,6 +212,11 @@ public class AnimationCommand {
             PENDING_FORM_CHANGE.remove(mc.player.getUUID());
             savePersistentCache();
             cached = SHAPE_CACHE.get(mc.player.getUUID());
+
+            String spawnAnim = findFirstAnim(filePrefix, "spawn", "born", "appear");
+            if (spawnAnim != null) {
+                triggerOnce(geo, filePrefix, spawnAnim);
+            }
         }
 
         String filePrefix = cached.substring(cached.indexOf('|') + 1);
@@ -204,14 +233,27 @@ public class AnimationCommand {
 
         if (!MOVEMENT_CTRL.containsKey(mc.player.getUUID())) {
             boolean hasChange = !findAnimCandidatesExact(filePrefix, "change").isEmpty();
-            String idleAnim = pickAnim(filePrefix, "idle", form, !hasChange);
-            String walkAnim = pickWalkAnim(filePrefix, form);
-            String runAnim = pickRunAnim(filePrefix, form);
-            String swimAnim = pickSwimAnim(filePrefix, form);
+            boolean wildcard = !hasChange;
+            String idleAnim = pickAnim(filePrefix, "idle", wildcard, form, wildcard);
+            String walkAnim = pickWalkAnim(filePrefix, wildcard, form);
+            String runAnim = pickRunAnim(filePrefix, wildcard, form);
+            String swimAnim = pickSwimAnim(filePrefix, wildcard, form);
             if (idleAnim != null && walkAnim != null) {
                 injectMovementController(geo, filePrefix, form, idleAnim, walkAnim, runAnim, swimAnim);
             }
         }
+
+        boolean onGround = mc.player.onGround();
+        long now = System.currentTimeMillis();
+        if (lastOnGround && !onGround && mc.player.getDeltaMovement().y > 0.1
+                && now - lastJumpTrigger > 500) {
+            lastJumpTrigger = now;
+            String jumpAnim = findFirstAnim(filePrefix, "jump");
+            if (jumpAnim != null) {
+                triggerOnce(geo, filePrefix, jumpAnim);
+            }
+        }
+        lastOnGround = onGround;
     }
 
     @SubscribeEvent
@@ -235,7 +277,9 @@ public class AnimationCommand {
         lastAttackTrigger = now;
 
         int form = FORM_STATE.getOrDefault(mc.player.getUUID(), 0);
-        String attackAnim = pickAnim(filePrefix, "attack", form, false);
+        boolean hasChange = !findAnimCandidatesExact(filePrefix, "change").isEmpty();
+        boolean wildcard = !hasChange;
+        String attackAnim = pickAnim(filePrefix, "attack", wildcard, form, false);
         if (attackAnim != null) {
             triggerOnce(geo, filePrefix, attackAnim);
         }
@@ -301,48 +345,68 @@ public class AnimationCommand {
         triggerOnce(geo, filePrefix, skills.get(index));
     }
 
-    private static String pickAnim(String filePrefix, String base, int form, boolean allowRandom) {
-        String suffix = form == 0 ? null : "_2";
+    private static String findFirstAnim(String filePrefix, String... bases) {
+        String prefix = filePrefix + "@";
+        for (String base : bases) {
+            String baseLower = base.toLowerCase(Locale.ROOT);
+            for (AnimEntry e : ANIM_CACHE) {
+                if (!e.fullId.startsWith(prefix)) continue;
+                String name = e.animName.toLowerCase(Locale.ROOT);
+                if (name.equals(baseLower) || name.startsWith(baseLower + "_")) {
+                    return e.animName;
+                }
+            }
+        }
+        return null;
+    }
+
+    private static String pickAnim(String filePrefix, String base, boolean wildcard, int form, boolean allowRandom) {
         List<String> candidates = new ArrayList<>();
         String prefix = filePrefix + "@";
         String baseLower = base.toLowerCase(Locale.ROOT);
         for (AnimEntry e : ANIM_CACHE) {
             if (!e.fullId.startsWith(prefix)) continue;
             String name = e.animName.toLowerCase(Locale.ROOT);
-            if (suffix == null) {
-                if (name.equals(baseLower) || name.equals(baseLower + "_1")) {
+            if (wildcard) {
+                if (name.equals(baseLower) || name.startsWith(baseLower + "_")) {
                     candidates.add(e.animName);
                 }
             } else {
-                if (name.equals(baseLower + suffix)) {
-                    candidates.add(e.animName);
+                String suffix = form == 0 ? null : "_2";
+                if (suffix == null) {
+                    if (name.equals(baseLower) || name.equals(baseLower + "_1")) candidates.add(e.animName);
+                } else {
+                    if (name.equals(baseLower + suffix)) candidates.add(e.animName);
                 }
             }
         }
         if (candidates.isEmpty()) return null;
-        if (allowRandom) {
-            return candidates.get(new Random().nextInt(candidates.size()));
-        }
+        if (allowRandom) return candidates.get(new Random().nextInt(candidates.size()));
         for (String c : candidates) {
             if (c.toLowerCase(Locale.ROOT).equals(baseLower)) return c;
         }
         return candidates.get(0);
     }
 
-    private static String pickWalkAnim(String filePrefix, int form) {
-        String suffix = form == 0 ? null : "_2";
+    private static String pickWalkAnim(String filePrefix, boolean wildcard, int form) {
         List<String> walkCandidates = new ArrayList<>();
         List<String> moveCandidates = new ArrayList<>();
         String prefix = filePrefix + "@";
         for (AnimEntry e : ANIM_CACHE) {
             if (!e.fullId.startsWith(prefix)) continue;
             String name = e.animName.toLowerCase(Locale.ROOT);
-            if (suffix == null) {
-                if (name.equals("walk") || name.equals("walk_1")) walkCandidates.add(e.animName);
-                else if (name.equals("move") || name.equals("move_1")) moveCandidates.add(e.animName);
+            if (wildcard) {
+                if (name.equals("walk") || name.startsWith("walk_")) walkCandidates.add(e.animName);
+                else if (name.equals("move") || name.startsWith("move_")) moveCandidates.add(e.animName);
             } else {
-                if (name.equals("walk" + suffix)) walkCandidates.add(e.animName);
-                else if (name.equals("move" + suffix)) moveCandidates.add(e.animName);
+                String suffix = form == 0 ? null : "_2";
+                if (suffix == null) {
+                    if (name.equals("walk") || name.equals("walk_1")) walkCandidates.add(e.animName);
+                    else if (name.equals("move") || name.equals("move_1")) moveCandidates.add(e.animName);
+                } else {
+                    if (name.equals("walk" + suffix)) walkCandidates.add(e.animName);
+                    else if (name.equals("move" + suffix)) moveCandidates.add(e.animName);
+                }
             }
         }
         List<String> list = !walkCandidates.isEmpty() ? walkCandidates : moveCandidates;
@@ -350,41 +414,49 @@ public class AnimationCommand {
         return list.get(new Random().nextInt(list.size()));
     }
 
-    private static String pickRunAnim(String filePrefix, int form) {
-        String suffix = form == 0 ? null : "_2";
+    private static String pickRunAnim(String filePrefix, boolean wildcard, int form) {
         List<String> candidates = new ArrayList<>();
         String prefix = filePrefix + "@";
         for (AnimEntry e : ANIM_CACHE) {
             if (!e.fullId.startsWith(prefix)) continue;
             String name = e.animName.toLowerCase(Locale.ROOT);
-            if (suffix == null) {
-                if (name.equals("run") || name.equals("run_1")) candidates.add(e.animName);
+            if (wildcard) {
+                if (name.equals("run") || name.startsWith("run_")) candidates.add(e.animName);
             } else {
-                if (name.equals("run" + suffix)) candidates.add(e.animName);
+                String suffix = form == 0 ? null : "_2";
+                if (suffix == null) {
+                    if (name.equals("run") || name.equals("run_1")) candidates.add(e.animName);
+                } else {
+                    if (name.equals("run" + suffix)) candidates.add(e.animName);
+                }
             }
         }
         if (candidates.isEmpty()) return null;
         return candidates.get(new Random().nextInt(candidates.size()));
     }
 
-    private static String pickSwimAnim(String filePrefix, int form) {
-        String suffix = form == 0 ? null : "_2";
+    private static String pickSwimAnim(String filePrefix, boolean wildcard, int form) {
         List<String> candidates = new ArrayList<>();
         String prefix = filePrefix + "@";
         for (AnimEntry e : ANIM_CACHE) {
             if (!e.fullId.startsWith(prefix)) continue;
             String name = e.animName.toLowerCase(Locale.ROOT);
-            boolean water = name.startsWith("water");
-            boolean swim = name.startsWith("swim");
+            boolean water = name.equals("water") || name.startsWith("water_");
+            boolean swim = name.equals("swim") || name.startsWith("swim_");
             if (!water && !swim) continue;
-            if (suffix == null) {
-                if (name.equals("water") || name.equals("swim")
-                        || name.equals("water_1") || name.equals("swim_1")) {
-                    candidates.add(e.animName);
-                }
+            if (wildcard) {
+                candidates.add(e.animName);
             } else {
-                if (name.equals("water" + suffix) || name.equals("swim" + suffix)) {
-                    candidates.add(e.animName);
+                String suffix = form == 0 ? null : "_2";
+                if (suffix == null) {
+                    if (name.equals("water") || name.equals("water_1")
+                            || name.equals("swim") || name.equals("swim_1")) {
+                        candidates.add(e.animName);
+                    }
+                } else {
+                    if (name.equals("water" + suffix) || name.equals("swim" + suffix)) {
+                        candidates.add(e.animName);
+                    }
                 }
             }
         }
@@ -441,7 +513,44 @@ public class AnimationCommand {
                 return e.namespace + ":" + e.filePath;
             }
         }
-        return null;
+        return findAnimFilePrefixByWords(shapeKey);
+    }
+
+    private static String findAnimFilePrefixByWords(String shapeKey) {
+        int colon = shapeKey.indexOf(':');
+        if (colon < 0) return null;
+        String namespace = shapeKey.substring(0, colon);
+        String path = shapeKey.substring(colon + 1);
+
+        Map<String, List<String>> nsIndex = WORD_INDEX.get(namespace);
+        if (nsIndex == null || nsIndex.isEmpty()) return null;
+
+        String last = path;
+        int slash = last.lastIndexOf('/');
+        if (slash >= 0) last = last.substring(slash + 1);
+        String[] tokens = last.toLowerCase(Locale.ROOT).split("_");
+
+        Map<String, Integer> score = new HashMap<>();
+        for (String t : tokens) {
+            if (t.isEmpty()) continue;
+            List<String> fileList = nsIndex.get(t);
+            if (fileList == null) continue;
+            for (String f : fileList) {
+                score.merge(f, 1, Integer::sum);
+            }
+        }
+        if (score.isEmpty()) return null;
+
+        int threshold = Math.max(1, (tokens.length + 1) / 2);
+        String best = null;
+        int bestScore = 0;
+        for (Map.Entry<String, Integer> e : score.entrySet()) {
+            if (e.getValue() > bestScore && e.getValue() >= threshold) {
+                bestScore = e.getValue();
+                best = e.getKey();
+            }
+        }
+        return best;
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
@@ -583,6 +692,7 @@ public class AnimationCommand {
         MOVEMENT_CTRL.remove(player.getUUID());
         FORM_STATE.put(player.getUUID(), 0);
         PENDING_FORM_CHANGE.remove(player.getUUID());
+        lastOnGround = true;
 
         ctx.getSource().sendSuccess(() ->
                 Component.literal("§a播放: " + entry.animName), false);
@@ -602,6 +712,7 @@ public class AnimationCommand {
         MOVEMENT_CTRL.remove(player.getUUID());
         FORM_STATE.remove(player.getUUID());
         PENDING_FORM_CHANGE.remove(player.getUUID());
+        lastOnGround = true;
         ctx.getSource().sendSuccess(() ->
                 Component.literal("§e已停止动画"), false);
         return 1;
