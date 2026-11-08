@@ -13,6 +13,7 @@
     "key.qiusmob.transform": "§eTransform",
     "key.qiusmob.possess": "§ePossess / Release",
     "key.qiusmob.view_mode": "§eToggle View Mode",
+    "key.qiusmob.morph": "§eOpen Morph Select",
 
     "key.qiusmob.death.ultimate": "§c§lUltimate Judgment",
     "key.qiusmob.death.melee": "§fMelee Attack",
@@ -58,21 +59,55 @@
     "message.qiusmob.skirk.night_only": "§5The Abyss only descends at night.",
     "message.qiusmob.consciousness.spawned": "§4You killed me. Now, I follow you.",
 
+    "message.qiusmob.morph.reset": "§eForm released",
+    "message.qiusmob.morph.not_unlocked": "§cThis form is not unlocked",
+    "message.qiusmob.morph.cannot": "§cThis entity cannot be morphed into",
+    "message.qiusmob.morph.selected": "Morphed into %s",
+    "message.qiusmob.morph.failed": "§cMorph failed",
+
+    "message.qiusmob.anim.not_found": "§cAnimation event not found",
+
+    "screen.qiusmob.morph_select": "Select Form",
+    "screen.qiusmob.morph_reset": "Release Form",
+    "screen.qiusmob.anim_select": "Animation Events",
+    "screen.qiusmob.anim_open": "Animation Events",
+    "screen.qiusmob.back": "Back",
+    "screen.qiusmob.anim_search": "Search animations",
+
+    "commands.qiusmob.morph.set": "Set %s's morph type to %s",
+    "commands.qiusmob.morph.clear": "Cleared %s's morph type",
+    "commands.qiusmob.morph.invalid_entity": "§cInvalid entity type: %s",
+    "commands.qiusmob.morph.selected": "Morphed into %s",
+    "commands.qiusmob.morph.unlock": "§aUnlocked morph: %s",
+    "commands.qiusmob.morph.unlock_all": "§aUnlocked all morphs, total %s",
+    "commands.qiusmob.morph.not_unlocked": "§cThis morph is not unlocked",
+    "commands.qiusmob.morph.cannot": "§cThis entity cannot be morphed into",
+    "commands.qiusmob.morph.failed": "§cMorph failed",
+    "commands.qiusmob.binding.death": "§aBound Death Monarch: %s",
+    "commands.qiusmob.binding.skirk": "§5Bound Skirk: %s",
+    "commands.qiusmob.binding.clear": "§eAll Boss bindings cleared",
+    "commands.qiusmob.binding.devourer": "§aSet Devourer owner: %s (Hash: %s)",
+    "commands.qiusmob.binding.info.header": "§6===== QiusMob Binding Info =====",
+    "commands.qiusmob.binding.info.death": "§cDeath Monarch Hash: §7%s",
+    "commands.qiusmob.binding.info.skirk": "§5Skirk Hash: §7%s",
+    "commands.qiusmob.binding.info.none": "None",
+    "commands.qiusmob.consciousness.bind": "§5Bound Abyss Consciousness to: %s",
+    "commands.qiusmob.consciousness.unbind": "§eUnbound",
+    "commands.qiusmob.consciousness.not_found": "§cNo Abyss Consciousness nearby!",
+    "commands.qiusmob.consciousness.info.phase": "§5Consciousness phase: %s",
+    "commands.qiusmob.consciousness.info.target": "§5Bound target: %s",
+    "commands.qiusmob.server_only": "§cServer-side only!",
+
     "advancement.qiusmob.root.title": "§4Heretic",
     "advancement.qiusmob.root.desc": "Entering the Nether, you hear an unknown force whisper:\n“■oul sand■‘cross’■, and a wither ■ull…”",
-
     "advancement.qiusmob.goal_summon_death.title": "§cThe Beginning",
     "advancement.qiusmob.goal_summon_death.desc": "“You have summoned Death…”\nYou know: you must defeat it.",
-
     "advancement.qiusmob.challenge_death.title": "§c§lMaster of Death... Cannot Feel Death...",
     "advancement.qiusmob.challenge_death.desc": "“Death will follow you…”\nYou feel you can become Death itself…\n§7Click §f[R] §7to turn yourself into §4§lDeath\n§7“The Abyss awaits…” An unknown voice guides you to find and activate a structure…",
-
     "advancement.qiusmob.goal_skirk_altar.title": "§5Eye of Ender…",
     "advancement.qiusmob.goal_skirk_altar.desc": "You found the structure, but it seems to need an Eye of Ender.",
-
     "advancement.qiusmob.goal_skirk_defeat.title": "§5Final Calamity…",
     "advancement.qiusmob.goal_skirk_defeat.desc": "You seem able to counterattack using the Abyss Consciousness…",
-
     "advancement.qiusmob.challenge_skirk.title": "§5§lI Am the Abyss",
     "advancement.qiusmob.challenge_skirk.desc": "§7Click §f[R] §7to turn yourself into §5§lSkirk"
 }

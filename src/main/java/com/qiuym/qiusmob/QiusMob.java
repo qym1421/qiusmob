@@ -25,7 +25,7 @@ public class QiusMob {
         PlayerConvertToQiusMob.register();
         ModFeatures.FEATURES.register(bus);
         MinecraftForge.EVENT_BUS.register(this);
-        
+
         LOGGER.info("[QiusMob] 模组加载完成！");
     }
 }

@@ -27,7 +27,6 @@ public class KeyInputHandler {
         Minecraft mc = Minecraft.getInstance();
         if (mc.player == null) return;
 
-        // 移动输入同步
         tickCounter++;
         if (tickCounter % 2 == 0) {
             float forward = 0, left = 0;
@@ -40,13 +39,11 @@ public class KeyInputHandler {
             NetworkHandler.INSTANCE.sendToServer(new MovementPacket(forward, left, jumping));
         }
 
-        // R - 变身
         while (KeyBindings.transformKey.consumeClick()) {
             clientTransformState = !clientTransformState;
             NetworkHandler.INSTANCE.sendToServer(new TransformPacket(clientTransformState));
         }
 
-        // G - 视角模式
         while (KeyBindings.viewModeKey.consumeClick()) {
             clientViewLocked = !clientViewLocked;
             NetworkHandler.INSTANCE.sendToServer(new ViewModePacket(clientViewLocked));
@@ -57,12 +54,9 @@ public class KeyInputHandler {
 
         if (!clientTransformState) return;
 
-        // U - 夺舍
         while (KeyBindings.possessKey.consumeClick()) {
             NetworkHandler.INSTANCE.sendToServer(new SkillPacket("possess"));
         }
-
-        // 死亡君主技能
         while (KeyBindings.ultimateKey.consumeClick()) {
             NetworkHandler.INSTANCE.sendToServer(new SkillPacket("ultimate"));
         }
@@ -75,8 +69,6 @@ public class KeyInputHandler {
         while (KeyBindings.aoeKey.consumeClick()) {
             NetworkHandler.INSTANCE.sendToServer(new SkillPacket("aoe"));
         }
-
-        // 丝柯克技能
         while (KeyBindings.skirkN.consumeClick()) {
             NetworkHandler.INSTANCE.sendToServer(new SkillPacket("skirk_n"));
         }
@@ -86,8 +78,6 @@ public class KeyInputHandler {
         while (KeyBindings.skirkI.consumeClick()) {
             NetworkHandler.INSTANCE.sendToServer(new SkillPacket("skirk_i"));
         }
-
-        // 左键
         while (KeyBindings.skirkFire.consumeClick()) {
             NetworkHandler.INSTANCE.sendToServer(new SkillPacket("skirk_fire"));
         }

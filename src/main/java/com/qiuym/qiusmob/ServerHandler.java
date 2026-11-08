@@ -5,30 +5,39 @@ import com.qiuym.qiusmob.entity.consciousness.AbyssConsciousnessEntity;
 import com.qiuym.qiusmob.entity.skirk.SkirkEntity;
 import com.qiuym.qiusmob.network.NetworkHandler;
 import com.qiuym.qiusmob.network.SkirkBindSyncPacket;
-import net.minecraft.server.MinecraftServer;
-import net.minecraftforge.network.PacketDistributor;
 import net.minecraft.advancements.Advancement;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LightningBolt;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.AttributeInstance;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.EndPortalFrameBlock;
-import net.minecraft.world.level.block.WitherSkullBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
+import net.minecraftforge.common.ForgeMod;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.event.level.BlockEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.network.PacketDistributor;
+import tocraft.walkers.api.PlayerShape;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
 public class ServerHandler {
 
@@ -36,40 +45,83 @@ public class ServerHandler {
             -30000000, -64, -30000000,
             30000000, 320, 30000000);
 
-    // ===== 模组总线 =====
+    public static final UUID ATK_MOD_UUID = UUID.fromString("a1b2c3d4-e5f6-7890-abcd-ef1234567890");
+    public static final UUID REACH_MOD_UUID = UUID.fromString("b2c3d4e5-f6a7-8901-bcde-f23456789012");
+    public static final String ATK_MOD_NAME = "qiusmob_morph_atk";
+    public static final String REACH_MOD_NAME = "qiusmob_morph_reach";
+
+    private static final Map<UUID, Boolean> MORPH_STATE = new HashMap<>();
+
     @Mod.EventBusSubscriber(modid = QiusMob.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD)
     public static class ModBusHandler {
     }
 
-    // ===== 游戏总线 =====
     @Mod.EventBusSubscriber(modid = QiusMob.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE)
     public static class ForgeBusHandler {
-    
+
         @SubscribeEvent
         public static void onServerTick(TickEvent.ServerTickEvent event) {
             if (event.phase != TickEvent.Phase.END) return;
-        
+
             MinecraftServer server = event.getServer();
             if (server == null) return;
-        
-            // 每 20 tick 检测一次
+
             if (server.getTickCount() % 20 != 0) return;
-        
+
             for (ServerPlayer player : server.getPlayerList().getPlayers()) {
                 ServerLevel level = player.serverLevel();
-        
+
                 int playerHash = player.getUUID().hashCode();
                 int skirkHash = level.getGameRules().getRule(ModEvents.SKIRK_BINDING_KEY).get();
                 boolean bound = (skirkHash != 0 && skirkHash == playerHash);
-        
+
                 NetworkHandler.INSTANCE.send(
                         PacketDistributor.PLAYER.with(() -> player),
                         new SkirkBindSyncPacket(bound)
                 );
+
+                boolean morphed = PlayerShape.getCurrentShape(player) != null;
+                Boolean prev = MORPH_STATE.get(player.getUUID());
+                if (prev == null || prev != morphed) {
+                    MORPH_STATE.put(player.getUUID(), morphed);
+                    if (morphed) {
+                        applyMorphAttributes(player);
+                    } else {
+                        removeMorphAttributes(player);
+                    }
+                }
             }
         }
 
-        // ===== 对象被攻击 → 意识反击 =====
+        public static void applyMorphAttributes(ServerPlayer player) {
+            Entity shape = PlayerShape.getCurrentShape(player);
+            double shapeHeight = shape != null ? shape.getBbHeight() : player.getBbHeight();
+
+            AttributeInstance atk = player.getAttribute(Attributes.ATTACK_DAMAGE);
+            if (atk != null) {
+                atk.removeModifier(ATK_MOD_UUID);
+                double bonus = player.getMaxHealth() * 0.05;
+                atk.addTransientModifier(new AttributeModifier(
+                        ATK_MOD_UUID, ATK_MOD_NAME, bonus, AttributeModifier.Operation.ADDITION));
+            }
+
+            AttributeInstance reach = player.getAttribute(ForgeMod.ENTITY_REACH.get());
+            if (reach != null) {
+                reach.removeModifier(REACH_MOD_UUID);
+                double bonus = shapeHeight * 2.0;
+                reach.addTransientModifier(new AttributeModifier(
+                        REACH_MOD_UUID, REACH_MOD_NAME, bonus, AttributeModifier.Operation.ADDITION));
+            }
+        }
+
+        public static void removeMorphAttributes(ServerPlayer player) {
+            AttributeInstance atk = player.getAttribute(Attributes.ATTACK_DAMAGE);
+            if (atk != null) atk.removeModifier(ATK_MOD_UUID);
+
+            AttributeInstance reach = player.getAttribute(ForgeMod.ENTITY_REACH.get());
+            if (reach != null) reach.removeModifier(REACH_MOD_UUID);
+        }
+
         @SubscribeEvent
         public static void onLivingHurt(LivingHurtEvent event) {
             if (event.getEntity().level().isClientSide()) return;
@@ -86,28 +138,27 @@ public class ServerHandler {
             }
         }
 
-        // ===== 放置凋灵骷髅头 → 召唤死亡君主 =====
         @SubscribeEvent
         public static void onBlockPlace(BlockEvent.EntityPlaceEvent event) {
             if (!(event.getEntity() instanceof ServerPlayer player)) return;
             if (!(event.getLevel() instanceof ServerLevel level)) return;
-        
+
             BlockPos pos = event.getPos();
             BlockState state = level.getBlockState(pos);
-        
+
             if (state.getBlock() != Blocks.WITHER_SKELETON_SKULL) return;
-        
+
             if (hasDeathMonarch(level)) {
                 player.displayClientMessage(
                         Component.translatable("message.qiusmob.death.already_exists"), true);
                 return;
             }
-        
+
             if (!isDeathAltar(level, pos)) return;
-        
+
             summonDeath(level, pos, player);
         }
-        
+
         private static boolean isDeathAltar(ServerLevel level, BlockPos skullPos) {
             if (!level.getBlockState(skullPos.below()).is(Blocks.SOUL_SAND)) return false;
             if (!level.getBlockState(skullPos.north()).is(Blocks.SOUL_SAND)) return false;
@@ -117,7 +168,6 @@ public class ServerHandler {
             return true;
         }
 
-        // ===== 右键末地传送门框架 → 召唤丝柯克 =====
         @SubscribeEvent
         public static void onRightClickBlock(PlayerInteractEvent.RightClickBlock event) {
             if (!(event.getEntity() instanceof ServerPlayer player)) return;
@@ -127,7 +177,6 @@ public class ServerHandler {
             BlockPos pos = event.getPos();
             if (!(level.getBlockState(pos).getBlock() instanceof EndPortalFrameBlock)) return;
 
-            // 检查是否已有丝柯克
             if (hasSkirk(level)) {
                 player.displayClientMessage(
                         Component.translatable("message.qiusmob.skirk.already_exists"), true);
@@ -135,13 +184,10 @@ public class ServerHandler {
                 return;
             }
 
-            // 检查结构
             if (!isSkirkAltar(level, pos)) return;
 
-            // 授勋成就：找到结构
             grantAdvancement(player, "goal_skirk_altar", "found_altar");
 
-            // 夜晚检查
             if (!level.isNight()) {
                 player.displayClientMessage(
                         Component.translatable("message.qiusmob.skirk.night_only"), true);
@@ -153,7 +199,6 @@ public class ServerHandler {
             event.setCanceled(true);
         }
 
-        // ===== 结构检测：丝柯克 =====
         private static boolean isSkirkAltar(ServerLevel level, BlockPos center) {
             for (int dx = -2; dx <= 2; dx++) {
                 for (int dz = -2; dz <= 2; dz++) {
@@ -169,7 +214,6 @@ public class ServerHandler {
             return true;
         }
 
-        // ===== 唯一性检查 =====
         private static boolean hasDeathMonarch(ServerLevel level) {
             return !level.getEntitiesOfClass(Death.class, WORLD_BOUNDS).isEmpty();
         }
@@ -178,7 +222,6 @@ public class ServerHandler {
             return !level.getEntitiesOfClass(SkirkEntity.class, WORLD_BOUNDS).isEmpty();
         }
 
-        // ===== 召唤死亡君主 =====
         private static void summonDeath(ServerLevel level, BlockPos pos, ServerPlayer player) {
             level.removeBlock(pos, false);
             level.removeBlock(pos.north(), false);
@@ -193,7 +236,6 @@ public class ServerHandler {
                     player.getYRot(), 0);
             level.addFreshEntity(death);
 
-            // 降雷
             for (int i = 0; i < 10; i++) {
                 double x = pos.getX() + level.random.nextInt(7) - 3;
                 double z = pos.getZ() + level.random.nextInt(7) - 3;
@@ -207,13 +249,10 @@ public class ServerHandler {
             player.displayClientMessage(
                     Component.translatable("message.qiusmob.death.summoned"), true);
 
-            // 授勋成就：开端
             grantAdvancement(player, "goal_summon_death", "summon_death");
         }
 
-        // ===== 召唤丝柯克 =====
         private static void summonSkirk(ServerLevel level, BlockPos pos, ServerPlayer player) {
-            // 感染 20 格内方块
             for (int dx = -20; dx <= 20; dx++) {
                 for (int dy = -10; dy <= 10; dy++) {
                     for (int dz = -20; dz <= 20; dz++) {
@@ -242,15 +281,13 @@ public class ServerHandler {
             player.displayClientMessage(
                     Component.translatable("message.qiusmob.skirk.summoned"), true);
 
-            // 授勋成就：终灾
             grantAdvancement(player, "goal_skirk_defeat", "summon_skirk");
         }
 
-        // ===== 授勋成就工具 =====
         private static void grantAdvancement(ServerPlayer player, String id, String criterion) {
             if (player.getServer() == null) return;
             Advancement adv = player.getServer().getAdvancements()
-                    .getAdvancement(new ResourceLocation(QiusMob.MOD_ID, id));
+                    .getAdvancement(ResourceLocation.fromNamespaceAndPath(QiusMob.MOD_ID, id));
             if (adv != null) {
                 player.getAdvancements().award(adv, criterion);
             }

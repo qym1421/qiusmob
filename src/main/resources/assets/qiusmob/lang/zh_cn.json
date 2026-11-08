@@ -13,6 +13,7 @@
     "key.qiusmob.transform": "§e切换变形",
     "key.qiusmob.possess": "§e夺舍 / 解除",
     "key.qiusmob.view_mode": "§e切换视角模式",
+    "key.qiusmob.morph": "§e打开形态选择",
 
     "key.qiusmob.death.ultimate": "§c§l终末审判",
     "key.qiusmob.death.melee": "§f近战攻击",
@@ -58,21 +59,55 @@
     "message.qiusmob.skirk.night_only": "§5深渊只在夜晚降临。",
     "message.qiusmob.consciousness.spawned": "§4你杀死了我。现在，我追着你不放。",
 
+    "message.qiusmob.morph.reset": "§e已解除形态",
+    "message.qiusmob.morph.not_unlocked": "§c未解锁该形态",
+    "message.qiusmob.morph.cannot": "§c该实体无法变形",
+    "message.qiusmob.morph.selected": "已变身为 %s",
+    "message.qiusmob.morph.failed": "§c变形失败",
+
+    "message.qiusmob.anim.not_found": "§c动画事件不存在",
+
+    "screen.qiusmob.morph_select": "形态选择",
+    "screen.qiusmob.morph_reset": "解除形态",
+    "screen.qiusmob.anim_select": "动画事件",
+    "screen.qiusmob.anim_open": "动画事件",
+    "screen.qiusmob.back": "返回",
+    "screen.qiusmob.anim_search": "Search animations",
+
+    "commands.qiusmob.morph.set": "已将 %s 的变形类型设为 %s",
+    "commands.qiusmob.morph.clear": "已清除 %s 的变形类型",
+    "commands.qiusmob.morph.invalid_entity": "§c无效的实体类型: %s",
+    "commands.qiusmob.morph.selected": "已变身为 %s",
+    "commands.qiusmob.morph.unlock": "§a已解锁形态: %s",
+    "commands.qiusmob.morph.unlock_all": "§a已解锁所有形态，共 %s 个",
+    "commands.qiusmob.morph.not_unlocked": "§c未解锁该形态",
+    "commands.qiusmob.morph.cannot": "§c该实体无法变形",
+    "commands.qiusmob.morph.failed": "§c变形失败",
+    "commands.qiusmob.binding.death": "§a已绑定死亡君主: %s",
+    "commands.qiusmob.binding.skirk": "§5已绑定深渊孤月: %s",
+    "commands.qiusmob.binding.clear": "§e已清除所有 Boss 绑定",
+    "commands.qiusmob.binding.devourer": "§a已设置神明吞噬者拥有者: %s (Hash: %s)",
+    "commands.qiusmob.binding.info.header": "§6===== QiusMob 绑定信息 =====",
+    "commands.qiusmob.binding.info.death": "§c死亡君主 Hash: §7%s",
+    "commands.qiusmob.binding.info.skirk": "§5深渊孤月 Hash: §7%s",
+    "commands.qiusmob.binding.info.none": "无",
+    "commands.qiusmob.consciousness.bind": "§5已将深渊意识绑定到: %s",
+    "commands.qiusmob.consciousness.unbind": "§e已解除绑定",
+    "commands.qiusmob.consciousness.not_found": "§c附近没有深渊意识！",
+    "commands.qiusmob.consciousness.info.phase": "§5意识阶段: %s",
+    "commands.qiusmob.consciousness.info.target": "§5绑定对象: %s",
+    "commands.qiusmob.server_only": "§c只能在服务端执行！",
+
     "advancement.qiusmob.root.title": "§4异端",
     "advancement.qiusmob.root.desc": "初入下界，你感受到一股不知名的力量在低语：\n“■魂沙摆■‘十’■，还有凋■骷■■…”",
-
     "advancement.qiusmob.goal_summon_death.title": "§c开端",
     "advancement.qiusmob.goal_summon_death.desc": "“你召唤了死亡…”\n你知道：你需要击败死亡。",
-
     "advancement.qiusmob.challenge_death.title": "§c§l掌控死亡者…不可感受死亡…",
     "advancement.qiusmob.challenge_death.desc": "“死亡会一直缠着你…”\n你感受到似乎可以变成死亡本身…\n§7Click §f[R] §7to turn yourself into §4§lDeath\n§7“深渊在等着你…”一股莫名的声音传来，祂在指引你找到并激活某个结构…",
-
     "advancement.qiusmob.goal_skirk_altar.title": "§5末影之眼…",
     "advancement.qiusmob.goal_skirk_altar.desc": "你找到了那个结构，但似乎需要一个末影之眼。",
-
     "advancement.qiusmob.goal_skirk_defeat.title": "§5终灾…",
     "advancement.qiusmob.goal_skirk_defeat.desc": "你似乎可以依靠深渊意识反击…",
-
     "advancement.qiusmob.challenge_skirk.title": "§5§l吾即深渊",
     "advancement.qiusmob.challenge_skirk.desc": "§7Click §f[R] §7to turn yourself into §5§lSkirk"
 }

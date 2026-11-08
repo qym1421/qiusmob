@@ -20,12 +20,11 @@ public class KeyBindings {
     public static void setTransformed(boolean state) {
         clientTransformState = state;
     }
-    
+
     public static boolean isTransformed() {
         return clientTransformState;
     }
 
-    // 通用
     public static final KeyMapping transformKey = new KeyMapping(
             "key.qiusmob.transform", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_R, CATEGORY_GENERAL);
     public static final KeyMapping possessKey = new KeyMapping(
@@ -33,7 +32,6 @@ public class KeyBindings {
     public static final KeyMapping viewModeKey = new KeyMapping(
             "key.qiusmob.view_mode", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_G, CATEGORY_GENERAL);
 
-    // 死亡君主
     public static final KeyMapping ultimateKey = new KeyMapping(
             "key.qiusmob.death.ultimate", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_O, CATEGORY_DEATH);
     public static final KeyMapping meleeKey = new KeyMapping(
@@ -43,7 +41,6 @@ public class KeyBindings {
     public static final KeyMapping aoeKey = new KeyMapping(
             "key.qiusmob.death.aoe", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_I, CATEGORY_DEATH);
 
-    // 丝柯克
     public static final KeyMapping skirkN = new KeyMapping(
             "key.qiusmob.skirk.n", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_N, CATEGORY_SKIRK);
     public static final KeyMapping skirkJ = new KeyMapping(
@@ -53,7 +50,7 @@ public class KeyBindings {
     public static final KeyMapping skirkFire = new KeyMapping(
             "key.qiusmob.skirk.fire",
             InputConstants.Type.MOUSE,
-            GLFW.GLFW_MOUSE_BUTTON_LEFT,  // 默认绑定鼠标左键
+            GLFW.GLFW_MOUSE_BUTTON_LEFT,
             CATEGORY_SKIRK
     );
 
